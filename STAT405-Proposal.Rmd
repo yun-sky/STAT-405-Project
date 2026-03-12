@@ -1,8 +1,47 @@
 ---
 title: "STAT405 Proposal"
 output: pdf_document
+author: "Lily Wang, Sky Yun, Zhengxi Yuan"
 date: "2026-03-09"
 ---
+
+Repository Link: https://github.com/yun-sky/STAT-405-Project
+
+## Datasets:
+US Housing Prices:
+https://github.com/yun-sky/STAT-405-Project/blob/74fe7a971074d01e14c2f963169d763a828c1966/Datasets/US_House_Price.csv 
+
+Economic Factors:
+https://github.com/yun-sky/STAT-405-Project/blob/74fe7a971074d01e14c2f963169d763a828c1966/Datasets/MSPUS.csv 
+
+## Link to dataset websites:
+US Housing Prices:
+https://www.kaggle.com/datasets/jyotsnagurjar/factors-influencing-us-house-prices?resource=download 
+
+Economic Factors:
+https://fred.stlouisfed.org/series/MSPUS 
+
+
 ```{r}
-print("helllllooooooooo")
+library(dplyr)
+
+economics_factors <- read.csv("Datasets/US_House_Price.csv")
+house_price <- read.csv("Datasets/MSPUS.csv")
+house_price <- rename(house_price, DATE = observation_date)
+
+dataset <- merge(house_price, economics_factors, by = "DATE")
+head(dataset)
 ```
+
+## Scientific Questions
+1. How well does a Bayesian linear regression model fitted on economic predictors, such as blank and blank, predict quarterly median US house prices compared to ordinary least squares regression?
+
+2. How well does a Bayesian linear regression model fitted on blank and blank, predict quarterly median US house prices compared to another BLR fitted on a different set of predictors?
+
+
+## Methodology
+
+
+## Group Contributions
+
+
