@@ -7,7 +7,7 @@ date: "2026-03-09"
 
 **Repository Link**: https://github.com/yun-sky/STAT-405-Project
 
-## Datasets:
+## Direct Download of Datasets:
 **US Housing Prices**:
 https://github.com/yun-sky/STAT-405-Project/blob/74fe7a971074d01e14c2f963169d763a828c1966/Datasets/US_House_Price.csv 
 
@@ -34,13 +34,12 @@ head(dataset)
 ```
 
 ## Scientific Questions
-How well does a Bayesian linear regression model fitted on blank and blank, predict quarterly median US house prices compared to another BLR fitted on a different set of predictors?
-
+How well does a Bayesian linear regression model fitted on blank and blank, predict quarterly median US house prices compared to another Bayesian Linear Regression model fitted on a different set of predictors?
 
 ## Methodology
 1. Exploratory Analysis
 
-2. Model-Fitting: Training, Testing
+2. Model-Fitting: Training, Predicting and Testing
 
 3. Model-Checking and Diagnostics: Checking Prior and Likelihood
    - Prediction: Posterior Predictive vs MAP estimate
