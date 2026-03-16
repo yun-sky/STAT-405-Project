@@ -1,53 +1,52 @@
 ---
 title: "STAT405 Proposal"
 output: pdf_document
-author: "Lily Wang, Sky Yun, Zhengxi Yuan"
+author: "Lily Wang (00000000), Sky Yun (55333710), Zhengxi Yuan (00000000)"
 date: "2026-03-09"
+urlcolor: blue
 ---
 
 **Repository Link**: https://github.com/yun-sky/STAT-405-Project
 
-# Datasets
+# Scientific Question
+How well does a Bayesian linear regression model fitted on time predict quarterly median US house prices compared to another Bayesian Linear Regression model fitted on purely economic predictors (excluding time)?
+
 
 ```{r echo=FALSE}
 suppressPackageStartupMessages(library(dplyr))
 
 house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
 economic_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE)
-
-# house_price <- rename(house_price, DATE = observation_date)
-# dataset <- merge(house_price, economics_factors, by = "DATE")
+california_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/housing.csv", header=TRUE)
 ```
 
-## Main Dataset
-**Economic Predictors for House Prices**
-
-https://www.kaggle.com/datasets/jyotsnagurjar/factors-influencing-us-house-prices?resource=download 
+## Main Dataset(s)
+**Economic Predictors for House Prices**: [Source](https://www.kaggle.com/datasets/jyotsnagurjar/factors-influencing-us-house-prices?resource=download) and [Direct Download](https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv)
 
 ```{r}
-head(economic_predictors)
+head(economic_factors)
 ```
 
-**Quartly Median US House Prices**
+**Quartly Median US House Prices**: [Source](https://fred.stlouisfed.org/series/MSPUS) and [Direct Download](https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv)
 
-https://fred.stlouisfed.org/series/MSPUS
 
 ```{r}
 head(house_price)
 ```
 
 ## Back Up Dataset
+**Median California Housing Prices**: [Source](https://www.kaggle.com/datasets/camnugent/california-housing-prices) and [Direct Download](https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/housing.csv)
 
+- **Note:** Research question will change for a new set of predictors but methodology will be the same
 
+```{r}
+head(california_price)
+```
 
-
-## Scientific Question
-How well does a Bayesian linear regression model fitted on time predict quarterly median US house prices compared to another Bayesian Linear Regression model fitted on purely economic predictors (excluding time)?
-
-
-## Methodology
+# Methodology
 1. Data Cleaning and Exploratory Analysis
-   - Merge economic predictors data with median housing prices
+   - Merge economic predictors data with median housing prices.
+   - Determining the appropriate prior and likelihood for each BLR model. 
 2. Model Fitting: Training BLR Models
    - Find the posteriors of each BLR model. Without conjugate priors we will need to estimate the posteriors using two different methods: SNIS or MCMC
 3. Model-Checking and Diagnostics: Checking Prior and Likelihood
@@ -58,16 +57,18 @@ How well does a Bayesian linear regression model fitted on time predict quarterl
    - Determine the best model based on RMSE and Discuss the trade-offs of using one model over another to predict quarterly median house prices. 
 
 
-## Group Contributions
-Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to each phase together. Here is a rough outline of who will do what. 
+# Group Contributions
+Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to at least a part of each phase which roughly corresponds to stages in our methodology. Here is a rough timeline of when we will complete each phase. 
 
-Phase 1: Exploratory Analysis (Lily & Jason)
+Phase 1 (March 20th): Exploratory Analysis and Data-Cleaning (Lily & Jason)
 
-Phase 2: Models Fitting (Sky, Lily, Jason)
+Phase 2 (March 27th): Models Fitting and Model-Checking (Sky, Jason, Lily)
 
-Phase 3: Models Checking and Comparison (Sky, Lily, Jason)
+Phase 3 (April 10th): Model Testing and Comparison (Sky, Lily, Jason)
 
-Phase 4: Interpretation and Results (Sky, Lily, Jason)
+Phase 4 (April 15th): Interpretation and Results (Sky)
+
+Phase 5 (April 15th): Submission (Lily)
 
 
 
