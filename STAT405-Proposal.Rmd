@@ -7,49 +7,59 @@ date: "2026-03-09"
 
 **Repository Link**: https://github.com/yun-sky/STAT-405-Project
 
-## Direct Download of Datasets:
-**US Housing Prices**:
-https://github.com/yun-sky/STAT-405-Project/blob/74fe7a971074d01e14c2f963169d763a828c1966/Datasets/US_House_Price.csv 
+# Datasets
 
-**Economic Factors**:
-https://github.com/yun-sky/STAT-405-Project/blob/74fe7a971074d01e14c2f963169d763a828c1966/Datasets/MSPUS.csv 
+```{r echo=FALSE}
+suppressPackageStartupMessages(library(dplyr))
 
-## Link to dataset websites:
-**US Housing Prices**:
-https://www.kaggle.com/datasets/jyotsnagurjar/factors-influencing-us-house-prices?resource=download 
+house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
+economic_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE)
 
-**Economic Factors**:
-https://fred.stlouisfed.org/series/MSPUS 
-
-
-```{r}
-library(dplyr)
-
-economics_factors <- read.csv("Datasets/US_House_Price.csv")
-house_price <- read.csv("Datasets/MSPUS.csv")
-house_price <- rename(house_price, DATE = observation_date)
-
-dataset <- merge(house_price, economics_factors, by = "DATE")
-head(dataset)
+# house_price <- rename(house_price, DATE = observation_date)
+# dataset <- merge(house_price, economics_factors, by = "DATE")
 ```
 
-## Scientific Questions
-How well does a Bayesian linear regression model fitted on blank and blank, predict quarterly median US house prices compared to another Bayesian Linear Regression model fitted on a different set of predictors?
+## Main Dataset
+**Economic Predictors for House Prices**
+
+https://www.kaggle.com/datasets/jyotsnagurjar/factors-influencing-us-house-prices?resource=download 
+
+```{r}
+head(economic_predictors)
+```
+
+**Quartly Median US House Prices**
+
+https://fred.stlouisfed.org/series/MSPUS
+
+```{r}
+head(house_price)
+```
+
+## Back Up Dataset
+
+
+
+
+## Scientific Question
+How well does a Bayesian linear regression model fitted on time predict quarterly median US house prices compared to another Bayesian Linear Regression model fitted on purely economic predictors (excluding time)?
+
 
 ## Methodology
-1. Exploratory Analysis
-
-2. Model-Fitting: Training, Predicting and Testing
-
+1. Data Cleaning and Exploratory Analysis
+   - Merge economic predictors data with median housing prices
+2. Model Fitting: Training BLR Models
+   - Find the posteriors of each BLR model. Without conjugate priors we will need to estimate the posteriors using two different methods: SNIS or MCMC
 3. Model-Checking and Diagnostics: Checking Prior and Likelihood
-   - Prediction: Posterior Predictive vs MAP estimate
-4. Model-Comparison: RMSE
-
-5. Results/Interpretation/Conclusion
+4. Model-Comparison: Using a Loss Function to Evaluate Model Performance 
+   - We will predict the test data by generating point estimates from the mode of the posterior predictive     distribution. 
+   - We then assess the performance of each model by comparing their RMSE values. 
+5. Results
+   - Determine the best model based on RMSE and Discuss the trade-offs of using one model over another to predict quarterly median house prices. 
 
 
 ## Group Contributions
-Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to each phase all together. A rough outline of who will do what. 
+Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to each phase together. Here is a rough outline of who will do what. 
 
 Phase 1: Exploratory Analysis (Lily & Jason)
 
@@ -58,5 +68,6 @@ Phase 2: Models Fitting (Sky, Lily, Jason)
 Phase 3: Models Checking and Comparison (Sky, Lily, Jason)
 
 Phase 4: Interpretation and Results (Sky, Lily, Jason)
+
 
 
