@@ -1,7 +1,7 @@
 ---
 title: "STAT405 Proposal"
 output: pdf_document
-author: "Lily Wang (00000000), Sky Yun (55333710), Zhengxi Yuan (00000000)"
+author: "Lily Wang (62800495), Sky Yun (55333710), Zhengxi Yuan (15025604)"
 date: "2026-03-09"
 urlcolor: blue
 ---
@@ -51,20 +51,20 @@ head(california_price)
    - Find the posteriors of each BLR model. Without conjugate priors we will need to estimate the posteriors using two different methods: SNIS or MCMC
 3. Model-Checking and Diagnostics: Checking Prior and Likelihood
 4. Model-Comparison: Using a Loss Function to Evaluate Model Performance 
-   - We will predict the test data by generating point estimates from the mode of the posterior predictive     distribution. 
+   - We will predict the test data by generating point estimates from the mode of the posterior predictive distribution. 
    - We then assess the performance of each model by comparing their RMSE values. 
 5. Results
    - Determine the best model based on RMSE and Discuss the trade-offs of using one model over another to predict quarterly median house prices. 
 
 
 # Group Contributions
-Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to at least a part of each phase which roughly corresponds to stages in our methodology. Here is a rough timeline of when we will complete each phase. 
+Weekly meetings will be held to ensure that the project is on track. All members will contribute to group discussions and contribute to at least a part of each phase which roughly corresponds to stages in our methodology. If major changes has to be done, all group members should agree on the parts to be changed. Here is a rough timeline of when we will complete each phase.
 
-Phase 1 (March 20th): Exploratory Analysis and Data-Cleaning (Lily & Jason)
+Phase 1 (March 20th): Exploratory Analysis and Data-Cleaning (Lily & Zhengxi)
 
-Phase 2 (March 27th): Models Fitting and Model-Checking (Sky, Jason, Lily)
+Phase 2 (March 27th): Models Fitting and Model-Checking (Sky, Zhengxi, Lily)
 
-Phase 3 (April 10th): Model Testing and Comparison (Sky, Lily, Jason)
+Phase 3 (April 10th): Model Testing and Comparison (Sky, Lily, Zhengxi)
 
 Phase 4 (April 15th): Interpretation and Results (Sky)
 
