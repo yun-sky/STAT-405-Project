@@ -1,0 +1,54 @@
+---
+title: "STAT405 Final Report"
+output: pdf_document
+author: "Lily Wang (62800495), Sky Yun (55333710), Zhengxi Yuan (15025604)"
+date: "2026-03-23"
+---
+```{r}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(lubridate))
+```
+
+## Introduction
+Our team worked with two U.S. housing-related datasets to study how well bayesian linear regression models can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model fitted only on time with another Bayesian linear regression model fitted on purely economic predictors, excluding time, to determine which model better predicts quarterly median U.S. house prices.
+
+The main response dataset is the "Quarterly Median U.S. House Prices" dataset, where the response variable is:
+
+- `MSPUS`: the quarterly median sales price of houses sold in the United States.
+
+The explanatory dataset is the "Economic Predictors for House Prices" dataset, which consists monthly economic and housing-related factors. Based on our proposal, we decided to include the following variables:
+
+- `GDP`: how the US economy impacts housing prices.
+- `mortgage_rate`: Percentage interest charged on a home loan.
+- `unemployment_rate`: Percentage of those unemployed in the US economy.
+
+Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data.
+```{r}
+house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
+economics_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE) %>%
+  select(GDP, mortgage_rate, unemployment_rate, DATE)
+
+# compute quarterly mean values of predictor variables
+economics_factors_quarterly <- economics_factors %>%
+  mutate(
+    DATE = as.Date(DATE),
+    quarter = floor_date(DATE, unit = "quarter")
+  ) %>%
+  group_by(quarter) %>%
+  summarise(
+    GDP = mean(GDP, na.rm = TRUE),
+    mortgage_rate = mean(mortgage_rate, na.rm = TRUE),
+    unemployment_rate = mean(unemployment_rate, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  rename(DATE = quarter)
+
+house_price <- house_price %>%
+  mutate(DATE = as.Date(observation_date))
+
+dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE")
+
+head(dataset)
+```
+
+
