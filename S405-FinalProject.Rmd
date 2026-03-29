@@ -7,6 +7,7 @@ date: "2026-03-23"
 ```{r}
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(lubridate))
+suppressPackageStartupMessages(library(ggplot2))
 ```
 
 ## Introduction
@@ -50,5 +51,31 @@ dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE")
 
 head(dataset)
 ```
+
+After merging the two data sets together, we checked for missing values and found no missing observations. 
+```{r}
+colSums(is.na(dataset))
+colSums(dataset == 0)
+```
+
+## Exploratory Analysis
+```{r}
+ggplot(dataset, aes(x = DATE, y = MSPUS)) +
+  geom_point() +
+  labs(x = "Date", y = "Median US housing price") +
+  ggtitle("Quarterly Median US Housing Price")
+
+suppressPackageStartupMessages(library(corrplot))
+numeric_data <- dataset[, sapply(dataset, is.numeric)]
+cor_matrix <- cor(numeric_data)
+corrplot(cor_matrix,
+         method = "color",
+         type = "upper",
+         addCoef.col = "black",
+         tl.col = "black",
+         tl.srt = 45)
+```
+Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housign price. 
+
 
 
