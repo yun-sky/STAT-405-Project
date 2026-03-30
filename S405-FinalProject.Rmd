@@ -4,6 +4,7 @@ output: pdf_document
 author: "Lily Wang (62800495), Sky Yun (55333710), Zhengxi Yuan (15025604)"
 date: "2026-03-23"
 ---
+
 ```{r}
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(lubridate))
@@ -11,19 +12,21 @@ suppressPackageStartupMessages(library(ggplot2))
 ```
 
 ## Introduction
+
 Our team worked with two U.S. housing-related datasets to study how well bayesian linear regression models can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model fitted only on time with another Bayesian linear regression model fitted on purely economic predictors, excluding time, to determine which model better predicts quarterly median U.S. house prices.
 
 The main response dataset is the "Quarterly Median U.S. House Prices" dataset, where the response variable is:
 
-- `MSPUS`: the quarterly median sales price of houses sold in the United States.
+-   `MSPUS`: the quarterly median sales price of houses sold in the United States.
 
 The explanatory dataset is the "Economic Predictors for House Prices" dataset, which consists monthly economic and housing-related factors. Based on our proposal, we decided to include the following variables:
 
-- `GDP`: how the US economy impacts housing prices.
-- `mortgage_rate`: Percentage interest charged on a home loan.
-- `unemployment_rate`: Percentage of those unemployed in the US economy.
+-   `GDP`: how the US economy impacts housing prices.
+-   `mortgage_rate`: Percentage interest charged on a home loan.
+-   `unemployment_rate`: Percentage of those unemployed in the US economy.
 
 Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data.
+
 ```{r}
 house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
 economics_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE) %>%
@@ -47,18 +50,25 @@ economics_factors_quarterly <- economics_factors %>%
 house_price <- house_price %>%
   mutate(DATE = as.Date(observation_date))
 
-dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE")
+dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE") %>%
+  select(-observation_date) %>%
+  mutate(
+    DATE = as.Date(DATE),
+    time_index = seq_len(n())
+  )
 
 head(dataset)
 ```
 
-After merging the two data sets together, we checked for missing values and found no missing observations. 
+After merging the two data sets together, we checked for missing values and found no missing observations.
+
 ```{r}
 colSums(is.na(dataset))
 colSums(dataset == 0)
 ```
 
 ## Exploratory Analysis
+
 ```{r}
 ggplot(dataset, aes(x = DATE, y = MSPUS)) +
   geom_point() +
@@ -75,7 +85,32 @@ corrplot(cor_matrix,
          tl.col = "black",
          tl.srt = 45)
 ```
-Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housign price. 
 
+Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
 
+Our naive model:
+
+$$
+y_t = \beta_0 + \beta_1 \, \text{time}_t + \beta_2 \, \text{GDP}_t + \beta_3 \, \text{UnemploymentRate}_t + \beta_4 \, \text{MortgageRate}_t + \varepsilon_t
+$$
+
+Our prior and likelihood:
+
+$$
+\begin{aligned}
+\beta_0 &\sim N(0, 10) \\
+\beta_1 &\sim N(0, 10) \\
+\beta_2 &\sim N(0, 10) \\
+\beta_3 &\sim N(0, 10) \\
+\beta_4 &\sim N(0, 10) \\
+\sigma &\sim \text{Exponential}(1)
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+y_t|\mu_t &\sim N(\mu_t, \sigma) \\
+\mu_t &= \beta_0 + \beta_1 \,\text{time}_t + \beta_2 \,\text{GDP}_t + \beta_3 \,\text{UnemploymentRate}_t + \beta_4 \,\text{MortgageRate}_t
+\end{aligned}
+$$
 
