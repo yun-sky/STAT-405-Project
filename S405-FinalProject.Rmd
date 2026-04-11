@@ -27,44 +27,11 @@ The explanatory dataset is the "Economic Predictors for House Prices" dataset, w
 
 Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data.
 
-```{r}
-house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
-economics_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE) %>%
-  select(GDP, mortgage_rate, unemployment_rate, DATE)
-
-# compute quarterly mean values of predictor variables
-economics_factors_quarterly <- economics_factors %>%
-  mutate(
-    DATE = as.Date(DATE),
-    quarter = floor_date(DATE, unit = "quarter")
-  ) %>%
-  group_by(quarter) %>%
-  summarise(
-    GDP = mean(GDP, na.rm = TRUE),
-    mortgage_rate = mean(mortgage_rate, na.rm = TRUE),
-    unemployment_rate = mean(unemployment_rate, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  rename(DATE = quarter)
-
-house_price <- house_price %>%
-  mutate(DATE = as.Date(observation_date))
-
-dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE") %>%
-  select(-observation_date) %>%
-  mutate(
-    DATE = as.Date(DATE),
-    time_index = seq_len(n())
-  )
-
-head(dataset)
-```
-
 After merging the two data sets together, we checked for missing values and found no missing observations.
 
 ```{r}
-colSums(is.na(dataset))
-colSums(dataset == 0)
+source("source/data_sources_and_dependencies.R")
+head(dataset)
 ```
 
 ## Exploratory Analysis
