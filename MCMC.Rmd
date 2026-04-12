@@ -1,0 +1,18 @@
+---
+title: "MCMC"
+author: "Sky Yun"
+date: "2026-04-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simple BLR MCMC Approximation
+
+```{r}
+library(cmdstanr)
+blr_mod <- cmdstan_model("bayesian_regression.stan")
+```
+

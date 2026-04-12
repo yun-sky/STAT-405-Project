@@ -18,11 +18,11 @@ parameters {
 }
 
 model {
-  beta0 ~ normal(0, 10)
-  beta1 ~ normal(0, 10)
-  beta2 ~ normal(0, 10)
-  beta3 ~ normal(0, 10)
-  sigma ~ exp(1)
+  beta0 ~ normal(0, 10);
+  beta1 ~ normal(0, 10);
+  beta2 ~ normal(0, 10);
+  beta3 ~ normal(0, 10);
+  sigma ~ exp(1);
   
   for (i in 1:N) {
     real mu_i = beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i]
