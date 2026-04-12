@@ -1,11 +1,10 @@
-//
 data {
   int N;
-  vector[N] real y;
-  vector[N] real time;
-  vector[N] real gdp; # GDP
-  vector[N] real unempl_rate; #Enempoyment Rate
-  vector[N] real mortgage_rate;#mortgage rate
+  vector[N] y;
+  vector[N] time;
+  vector[N] gdp; // GDP
+  vector[N] unempl_rate; //Enempoyment Rate
+  vector[N] mortgage_rate;//mortgage rate
 } 
 
 parameters {
@@ -22,11 +21,21 @@ model {
   beta1 ~ normal(0, 10);
   beta2 ~ normal(0, 10);
   beta3 ~ normal(0, 10);
-  sigma ~ exp(1);
+  sigma ~ exponential(1);
   
   for (i in 1:N) {
-    real mu_i = beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i]
-    y[i] ~ normal(mu_i, sigma)
+    real mu_i = beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i];
+    y[i] ~ normal(mu_i, sigma);
+  }
+}
+
+generated quantities {
+  vector[N] y_pred;
+
+  for (i in 1:N) {
+    y_pred[i] = normal_rng(
+      beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i],
+      sigma);
   }
 }
 
