@@ -30,7 +30,7 @@ house_price <- house_price %>%
 
 # Dataset
 dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE") %>%
-  select(-observation_date) %>%
+  dplyr::select(-observation_date) %>%
   mutate(
     DATE = as.Date(DATE),
     time_index = seq_len(n())
