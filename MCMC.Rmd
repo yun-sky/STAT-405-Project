@@ -1,0 +1,87 @@
+---
+title: "MCMC"
+author: "Sky Yun"
+date: "2026-04-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(bayesplot))
+source("source/data_sources_and_dependencies.R")
+
+nrow(dataset)
+```
+
+
+# Simple BLR MCMC Approximation
+
+## MCMC Sampling
+```{r}
+
+train_data=list(
+  N = nrow(dataset),
+  y = dataset$MSPUS,
+  time = dataset$time_index,
+  gdp = dataset$GDP,
+  unempl_rate = dataset$unemployment_rate,
+  mortgage_rate = dataset$mortgage_rate
+)
+n_samples = 5000
+
+blr_mod <- cmdstan_model("bayesian_regression.stan")
+
+blr_fit <- blr_mod$sample(
+  chains=1,
+  refresh=n_samples,
+  iter_warmup=1000,
+  iter_sampling=n_samples,
+  data=train_data
+)
+```
+### Summary
+
+```{r}
+blr_fit$summary()
+```
+
+
+## MCMC Diagnostics
+
+### Trace Plots and Rank Plots: Fast-Mixing Conditions
+```{r}
+posterior_samples <- blr_fit$draws(variables=c("beta0", "beta1", "sigma"), format="draws_df")
+
+# Trace Plots
+mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
+
+# Rank Plots
+mcmc_rank_hist(posterior_samples) + theme_minimal()
+```
+- Trace plots samples oscillate rapidly indicating fast-mixing 
+- Rank plots are approximately uniform which also indicates fast-mixing conditions.
+
+### Posterior Predictive Checks: Calibration
+
+**Posterior Predictive Plots**
+```{r}
+
+# Check First 100 Reps
+y_preds_MCMC <- blr_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
+pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
+```
+# Assessing Accuracy 
+
+
+
+
+
+
+
+
+
+

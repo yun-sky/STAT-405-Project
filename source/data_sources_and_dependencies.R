@@ -5,7 +5,6 @@ suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(corrplot))
 
-
 house_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/MSPUS.csv", header=TRUE)
 economic_factors <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/US_House_Price.csv", header=TRUE)
 california_price <- read.csv("https://raw.githubusercontent.com/yun-sky/STAT-405-Project/refs/heads/master/Datasets/housing.csv", header=TRUE)
