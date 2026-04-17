@@ -225,30 +225,15 @@ plot(
 abline(0, 1, lty = 2)
 ```
 
+We fitted a Bayesian linear regression model to standardized house prices (MSPUS) using time_index, GDP, unemployment_rate, and mortgage_rate as predictors. Posterior inference was conducted using self-normalized importance sampling (SNIS).
 
+The effective sample size of our SNIS approximation is 3069.447 out of 10,000 draws. This suggests that the proposal distribution matched the posterior, stating that the posterior approximation is stable.
 
-3069.447 is the effective sample size (ESS) of the SNIS weights.
+Looking at the posterior mean coefficients, GDP seems to be the strongest predictor, with a value of 1.09. The other predictors show relatively small positive and negative effects on median US housing price. The posterior mean of the residual standard deviation is around 0.27, suggesting there are still some unexplained variation remaining.
 
-From the posterior summary table, we can summaries
-GDP has a clearly positive effect. Its mean is large and its visible lower quantile is still positive.
-mortgage_rate also looks positive.
-unemployment_rate is close to 0, so its effect looks weak.
-time_index has a wide spread, so it is more uncertain.
-sigma is estimated pretty tightly around about 0.27.
-So GDP is the dominant signal.
+Posterior predictive checks indicate that the model fits the data reasonably well. The replicated mean and observed mean are both close to 0 and the standard deviations are similar. Also, the Bayesian p-values are near 0.5. In addition, the predictive plots show that the model captures the overall upward trend in house prices.
 
-
-From the prediction_summary table,
-So the model predicted a low house price there, and the true value falls inside the predictive interval.
-
-
-From the posterior predictive check table,
-The model reproduces the overall center and overall spread of the data well.
-
-
-The line plot suggest that the model is good at capturing the general pattern but less good at capturing sharp changes or extreme movements.
-
-The scatter plot show that the model predicts the middle range well but it struggles more with the most extreme observations.
+Overall, this model provides a good Bayesian baseline for the house-price data. It yields stable posterior inference, identifies GDP as the main predictor, and captures the main pattern in the data.
 
 
 
