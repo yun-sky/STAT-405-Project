@@ -1,31 +1,31 @@
-//
-// This Stan program defines a simple model, with a
-// vector of values 'y' modeled as normally distributed
-// with mean 'mu' and standard deviation 'sigma'.
-//
-// Learn more about model development with Stan at:
-//
-//    http://mc-stan.org/users/interfaces/rstan.html
-//    https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
-//
-
-// The input data is a vector 'y' of length 'N'.
 data {
-  int<lower=0> N;
-  vector[N] y;
+  int<lower=1> T;            // num observations
+  array[T] real y;           // observed outputs
 }
-
-// The parameters accepted by the model. Our model
-// accepts two parameters 'mu' and 'sigma'.
 parameters {
-  real mu;
-  real<lower=0> sigma;
+  real mu;                   // mean coeff
+  real phi;                  // autoregression coeff
+  real theta;                // moving avg coeff
+  real<lower=0> sigma;       // noise scale
 }
-
-// The model to be estimated. We model the output
-// 'y' to be normally distributed with mean 'mu'
-// and standard deviation 'sigma'.
 model {
-  y ~ normal(mu, sigma);
+  vector[T] nu;              // prediction for time t
+  vector[T] err;             // error for time t
+  
+  nu[1] = mu + phi * mu;     // assume err[0] == 0
+  err[1] = y[1] - nu[1];
+  
+  for (t in 2:T) {
+    nu[t] = mu + phi * y[t - 1] + theta * err[t - 1];
+    err[t] = y[t] - nu[t];
+  }
+  
+  /* Prior Distributions */
+  mu ~ normal(0, 10);        // priors
+  phi ~ normal(0, 2);
+  theta ~ normal(0, 2);
+  
+  sigma ~ cauchy(0, 5);
+  err ~ normal(0, sigma);    // error model
 }
 

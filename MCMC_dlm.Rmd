@@ -22,7 +22,7 @@ source("source/data_sources_and_dependencies.R")
 
 **Time Series Plot**
 ```{r}
-data=dataset
+data=data_scaled
 plot(x=data$DATE, y=data$MSPUS, 
      ylab="Median US House Price", 
      xlab="Date", type="l")
@@ -35,11 +35,11 @@ plot(x=data$DATE, y=data$MSPUS,
 ```{r}
 
 # Predictions
-log_y = log(dataset$MSPUS)
+diff_y = diff(dataset$MSPUS)
 
 # Find best ARIMA model based on AIC
-arima_best_fit = auto.arima(log_y)
-arima_1_1 = arima(log_y, order=c(1, 1, 1))
+arima_best_fit = auto.arima(diff_y)
+arima_1_1 = arima(diff_y, order=c(1, 1, 1))
 
 # mu, ar1, ma1, ma2 parameters
 summary(arima_best_fit)
@@ -47,11 +47,14 @@ summary(arima_best_fit)
 # mu, ar1, ma1 parameters
 summary(arima_1_1)
 
-# Approximately Normal Residuals which statisifes
+# Approximately Normal Residuals
 qqnorm(arima_best_fit$residuals)
-qqnorm(arima_1_1$residuals)
-```
+qqline(arima_best_fit$residuals)
 
+# ARIMA(1, 1) Model
+qqnorm(arima_1_1$residuals, main="ARMA(1, 1)")
+qqline(arima_1_1$residuals)
+```
 
 ## MCMC Approximation
 
@@ -59,33 +62,47 @@ qqnorm(arima_1_1$residuals)
 ```{r}
 log_y = log(dataset$MSPUS)
 scaled_y = dataset$MSPUS
+diff_log_y = diff(log(dataset$MSPUS))
 
-y = scaled_y
+# MODIFY
+y = y
 
 train_data=list(
-  N = nrow(dataset),
-  y = scaled_y
+  T = length(y),
+  y = y
 )
 
 n_samples = 10000
 
-dlm_mod <- cmdstan_model("source/reparam_centered_dlm_manual.stan")
+dlm_mod <- cmdstan_model("source/arima.stan")
 ```
 
 **Sampling**
 ```{r}
 dlm_fit <- dlm_mod$sample(
+  seed=1,
   chains=2, 
   refresh=n_samples,
   iter_warmup=2500,
   iter_sampling=n_samples,
-  data=train_data
+  data=train_data, 
 )
 ```
 
-## Summary Analysis
+## MCMC Diagnostics
+
+### Summary
 ```{r}
-posterior_samples <- dlm_fit$draws(variables=c("sigma_y", "sigma_level"))
+dlm_fit$summary()
+```
+
+
+
+### Trace and Rank Plots
+```{r}
+
+# Samples
+posterior_samples <- dlm_fit$draws(variables=c("mu", "phi", "sigma"))
 
 # Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
@@ -98,16 +115,6 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```{r}
 y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:50, ]
 
-# plot(y_preds_MCMC)
-# plot(log_y, type="l")
-
-# print(as.data.frame(y_preds_MCMC))
-
-# 
-# mean(log_y)
-# lm(log_y ~ dataset$time_index)
-# sd(log_y)
-
 ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
 
 vec_mcmc = as.vector((y_preds_MCMC[7, ]))
@@ -119,9 +126,6 @@ pp_check(log_y, y_preds_MCMC, fun="dens_overlay")
 
 plot(y=vec_mcmc, x=dataset$time_index, type="l")
 plot(y=log_y, x=dataset$time_inde, type="l")
-
-# ggplot(y_pred_mcmc, aes(x=y_pred)) + geom_density()
-# ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
 ```
 
 
