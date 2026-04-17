@@ -22,19 +22,34 @@ source("source/data_sources_and_dependencies.R")
 
 **Time Series Plot**
 ```{r}
-plot(x=dataset$DATE, y=dataset$MSPUS, 
+data=dataset
+plot(x=data$DATE, y=data$MSPUS, 
      ylab="Median US House Price", 
      xlab="Date", type="l")
 ```
 
-- shows a slight increasing trend with slight fluctuations throughout time, potentially suggesting a Bayesian dynamic linear model (DLM). 
+- shows a slight increasing trend with slight fluctuations throughout time, potentially suggesting a Bayesian dynamic linear model (DLM)
 
 
 **ACF and PACF plots of Differenced Series**
 ```{r}
-plot(diff(dataset$MSPUS), type='l')
-acf(diff(dataset$MSPUS))
-pacf(diff(dataset$MSPUS))
+
+# Predictions
+log_y = log(dataset$MSPUS)
+
+# Find best ARIMA model based on AIC
+arima_best_fit = auto.arima(log_y)
+arima_1_1 = arima(log_y, order=c(1, 1, 1))
+
+# mu, ar1, ma1, ma2 parameters
+summary(arima_best_fit)
+
+# mu, ar1, ma1 parameters
+summary(arima_1_1)
+
+# Approximately Normal Residuals which statisifes
+qqnorm(arima_best_fit$residuals)
+qqnorm(arima_1_1$residuals)
 ```
 
 
@@ -52,9 +67,9 @@ train_data=list(
   y = scaled_y
 )
 
-n_samples = 1000
+n_samples = 10000
 
-dlm_mod <- cmdstan_model("source/local_test.stan")
+dlm_mod <- cmdstan_model("source/reparam_centered_dlm_manual.stan")
 ```
 
 **Sampling**
@@ -62,7 +77,7 @@ dlm_mod <- cmdstan_model("source/local_test.stan")
 dlm_fit <- dlm_mod$sample(
   chains=2, 
   refresh=n_samples,
-  iter_warmup=1000,
+  iter_warmup=2500,
   iter_sampling=n_samples,
   data=train_data
 )
@@ -70,7 +85,7 @@ dlm_fit <- dlm_mod$sample(
 
 ## Summary Analysis
 ```{r}
-posterior_samples <- dlm_fit$draws(variables=c("sigma_y", "sigma_level", "sigma_slope"))
+posterior_samples <- dlm_fit$draws(variables=c("sigma_y", "sigma_level"))
 
 # Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
@@ -109,10 +124,6 @@ plot(y=log_y, x=dataset$time_inde, type="l")
 # ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
 ```
 
-# Non-Bayesian DLM Fitting Model
-```{r}
-library(dlm)
-```
 
 
 
