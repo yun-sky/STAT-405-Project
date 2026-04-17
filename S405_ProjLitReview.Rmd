@@ -1,0 +1,10 @@
+---
+title: "S405_ProjLitReview"
+output: pdf_document
+date: "2026-04-17"
+---
+
+Previous study on the Median US Housing Price written by Yuxiao Chen argued that during the federal reserve’s continous interest rate increases in 2022-2023, the US house prices were expected to drop, but not fall sharply. The results showed that US house prices were still increasing, but at a lower rate. First, mortgage rates don't depend solely on interest rates, it is influenced more by inflation expectations and US federal demand for US bonds. Also, housing prices are sticky, so they may take years to adjust to market changes. 
+
+This previous study focuses on economic argument with literature discussion, while our analysis is much more statistical and Bayesian. We build bayesian models to predict and explain median US housing prices using macroeconomic factors, like GDP, unemployment rate, and mortgage rate. The study done by Yuxiao Chen relies more on economic reasoning and historical discussions. 
+
