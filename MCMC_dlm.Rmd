@@ -33,9 +33,13 @@ plot(x=data$DATE, y=data$MSPUS,
 
 **ACF and PACF plots of Differenced Series**
 ```{r}
-
 # Predictions
 diff_y = diff(dataset$MSPUS)
+plot(diff_y, type="l")
+```
+
+
+```{r}
 
 # Find best ARIMA model based on AIC
 arima_best_fit = auto.arima(diff_y)
@@ -46,9 +50,13 @@ summary(arima_best_fit)
 
 # mu, ar1, ma1 parameters
 summary(arima_1_1)
+```
 
+**Residual Checking**
+```{r}
 # Approximately Normal Residuals
-qqnorm(arima_best_fit$residuals)
+# MA(3) Model
+qqnorm(arima_best_fit$residuals, main="MA(3)")
 qqline(arima_best_fit$residuals)
 
 # ARIMA(1, 1) Model
@@ -60,32 +68,27 @@ qqline(arima_1_1$residuals)
 
 **Compiling Model**
 ```{r}
-log_y = log(dataset$MSPUS)
-scaled_y = dataset$MSPUS
-diff_log_y = diff(log(dataset$MSPUS))
-
-# MODIFY
-y = y
-
 train_data=list(
-  T = length(y),
-  y = y
+  N = length(diff_y),
+  y = diff_y
 )
 
 n_samples = 10000
 
-dlm_mod <- cmdstan_model("source/arima.stan")
+ma3_mod <- cmdstan_model("source/ma3.stan");
+# arma11_mod <- cmdstan_model("source/arima.stan");
 ```
 
 **Sampling**
 ```{r}
 dlm_fit <- dlm_mod$sample(
-  seed=1,
+  seed=2,
   chains=2, 
   refresh=n_samples,
-  iter_warmup=2500,
+  iter_warmup=5000,
   iter_sampling=n_samples,
-  data=train_data, 
+  data=train_data,
+  show_exceptions = FALSE
 )
 ```
 
@@ -100,9 +103,8 @@ dlm_fit$summary()
 
 ### Trace and Rank Plots
 ```{r}
-
 # Samples
-posterior_samples <- dlm_fit$draws(variables=c("mu", "phi", "sigma"))
+posterior_samples <- dlm_fit$draws(variables=c("mu", "theta"))
 
 # Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
@@ -112,9 +114,15 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```
 
 
+**T**
 ```{r}
-y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:50, ]
+y_preds_MCMC <- dlm_fit$draws(c("y_post_pred"), format="draws_matrix")[1:50,]
+pp_check(diff_y, y_preds_MCMC, fun="dens_overlay")
+```
 
+
+**Code**
+```{r}
 ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
 
 vec_mcmc = as.vector((y_preds_MCMC[7, ]))
