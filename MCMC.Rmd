@@ -13,8 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
 source("source/data_sources_and_dependencies.R")
-
-nrow(dataset)
+```
+# Plots
+```{r}
+plot(dataset$MSPUS)
 ```
 
 
@@ -36,7 +38,7 @@ n_samples = 5000
 blr_mod <- cmdstan_model("bayesian_regression.stan")
 
 blr_fit <- blr_mod$sample(
-  chains=1,
+  chains=2,
   refresh=n_samples,
   iter_warmup=1000,
   iter_sampling=n_samples,
@@ -67,14 +69,19 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 
 ### Posterior Predictive Checks: Calibration
 
-**Posterior Predictive Plots**
+**Posterior Predictive Plots**:
 ```{r}
-
 # Check First 100 Reps
 y_preds_MCMC <- blr_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
 pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
 ```
-# Assessing Accuracy 
+- Fits pretty well for the first peak, might be underfitting for the second peak.  
+
+**Cross-Validation: Prediction Accuracy using MAE and Cross-Validation Prediction Intervals**
+
+
+
+
 
 
 
