@@ -14,28 +14,26 @@ suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
 source("source/data_sources_and_dependencies.R")
 ```
-# Plots
-```{r}
-plot(dataset$MSPUS)
-```
-
-
 # Simple BLR MCMC Approximation
 
 ## MCMC Sampling
 ```{r}
+data = data_scaled
+
+date = data$DATE
+y = data$MSPUS
 
 train_data=list(
   N = nrow(dataset),
-  y = dataset$MSPUS,
-  time = dataset$time_index,
-  gdp = dataset$GDP,
-  unempl_rate = dataset$unemployment_rate,
-  mortgage_rate = dataset$mortgage_rate
+  y = y,
+  time = data$time_index,
+  gdp = data$GDP,
+  unempl_rate = data$unemployment_rate,
+  mortgage_rate = data$mortgage_rate
 )
 n_samples = 5000
 
-blr_mod <- cmdstan_model("bayesian_regression.stan")
+blr_mod <- cmdstan_model("source/bayesian_regression.stan")
 
 blr_fit <- blr_mod$sample(
   chains=2,
@@ -72,10 +70,23 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 **Posterior Predictive Plots**:
 ```{r}
 # Check First 100 Reps
-y_preds_MCMC <- blr_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
-pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
+y_preds_MCMC <- blr_fit$draws(c("y_pred"), format="draws_matrix")[1:1000, ]
+pp_check(y, y_preds_MCMC, fun="dens_overlay")
+
+one_sample <- as.vector(y_preds_MCMC[1,])
 ```
-- Fits pretty well for the first peak, might be underfitting for the second peak.  
+
+
+# Predictive Accuracy: 
+
+**Posterior Mean Estimation**
+```{r}
+posterior_means_y = as.vector(colMeans(y_preds_MCMC))
+plot(posterior_means_y, x=date, type="l")
+lines(y, x=date, col="red")
+```
+
+- Fits pretty well for the first peak, for the second peak.  
 
 **Cross-Validation: Prediction Accuracy using MAE and Cross-Validation Prediction Intervals**
 

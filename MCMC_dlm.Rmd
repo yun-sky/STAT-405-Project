@@ -24,7 +24,7 @@ source("source/data_sources_and_dependencies.R")
 ```{r}
 plot(x=dataset$DATE, y=dataset$MSPUS, 
      ylab="Median US House Price", 
-     xlab="Date")
+     xlab="Date", type="l")
 ```
 
 - shows a slight increasing trend with slight fluctuations throughout time, potentially suggesting a Bayesian dynamic linear model (DLM). 
@@ -42,32 +42,34 @@ pacf(diff(dataset$MSPUS))
 
 **Compiling Model**
 ```{r}
+log_y = log(dataset$MSPUS)
+scaled_y = dataset$MSPUS
+
+y = scaled_y
+
 train_data=list(
   N = nrow(dataset),
-  y = t(as.matrix(dataset$MSPUS))
+  y = scaled_y
 )
 
-dim(train_data$y)
 n_samples = 1000
 
-dlm_mod <- cmdstan_model("source/bayesian_dlm.stan")
+dlm_mod <- cmdstan_model("source/local_test.stan")
 ```
 
 **Sampling**
 ```{r}
 dlm_fit <- dlm_mod$sample(
-  chains=1, 
+  chains=2, 
   refresh=n_samples,
   iter_warmup=1000,
   iter_sampling=n_samples,
-  data=train_data, 
-  show_exceptions=FALSE
+  data=train_data
 )
 ```
 
 ## Summary Analysis
 ```{r}
-dlm_fit$summary()
 posterior_samples <- dlm_fit$draws(variables=c("sigma_y", "sigma_level", "sigma_slope"))
 
 # Trace Plots
@@ -79,8 +81,37 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 
 
 ```{r}
-y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
-pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
+y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:50, ]
+
+# plot(y_preds_MCMC)
+# plot(log_y, type="l")
+
+# print(as.data.frame(y_preds_MCMC))
+
+# 
+# mean(log_y)
+# lm(log_y ~ dataset$time_index)
+# sd(log_y)
+
+ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
+
+vec_mcmc = as.vector((y_preds_MCMC[7, ]))
+y_pred_mcmc = as.data.frame(x = vec_mcmc)
+colnames(y_pred_mcmc) = c("y_pred")
+
+pp_check(vec_mcmc, y_preds_MCMC, fun="dens_overlay")
+pp_check(log_y, y_preds_MCMC, fun="dens_overlay")
+
+plot(y=vec_mcmc, x=dataset$time_index, type="l")
+plot(y=log_y, x=dataset$time_inde, type="l")
+
+# ggplot(y_pred_mcmc, aes(x=y_pred)) + geom_density()
+# ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
+```
+
+# Non-Bayesian DLM Fitting Model
+```{r}
+library(dlm)
 ```
 
 

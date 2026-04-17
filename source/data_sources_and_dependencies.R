@@ -35,6 +35,16 @@ dataset <- inner_join(house_price, economics_factors_quarterly, by = "DATE") %>%
     time_index = seq_len(n())
   )
 
+data_scaled <- dataset %>%
+  na.omit() %>%
+  mutate(
+    MSPUS = as.numeric(scale(MSPUS)),
+    time_index = as.numeric(scale(time_index)),
+    GDP = as.numeric(scale(GDP)),
+    unemployment_rate = as.numeric(scale(unemployment_rate)),
+    mortgage_rate = as.numeric(scale(mortgage_rate))
+  )
+
 colSums(is.na(dataset))
 colSums(dataset == 0)
 
