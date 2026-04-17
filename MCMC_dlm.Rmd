@@ -60,14 +60,15 @@ dlm_fit <- dlm_mod$sample(
   refresh=n_samples,
   iter_warmup=1000,
   iter_sampling=n_samples,
-  data=train_data
+  data=train_data, 
+  show_exceptions=FALSE
 )
 ```
 
 ## Summary Analysis
 ```{r}
 dlm_fit$summary()
-posterior_samples <- dlm_fit$draws(variables=c("beta1_t[2]"))
+posterior_samples <- dlm_fit$draws(variables=c("sigma_y", "sigma_level", "sigma_slope"))
 
 # Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
@@ -81,5 +82,7 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
 pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
 ```
+
+
 
 
