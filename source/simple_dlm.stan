@@ -17,6 +17,6 @@
 //   sigma_obs ~ exponential(1);
 //   sigma_level ~ exponential(1);
 //   
-//   y ~ 
+//   y ~ gaussian_dlm
 //   
 // }

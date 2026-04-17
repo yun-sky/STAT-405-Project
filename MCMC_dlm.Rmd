@@ -18,26 +18,43 @@ source("source/data_sources_and_dependencies.R")
 ```
 
 
-## DLM Testing
-```{r}
-plot(dataset$MSPUS)
+## Time Series Exploratory Analysis
 
+**Time Series Plot**
+```{r}
+plot(x=dataset$DATE, y=dataset$MSPUS, 
+     ylab="Median US House Price", 
+     xlab="Date")
+```
+
+- shows a slight increasing trend with slight fluctuations throughout time, potentially suggesting a Bayesian dynamic linear model (DLM). 
+
+
+**ACF and PACF plots of Differenced Series**
+```{r}
 plot(diff(dataset$MSPUS), type='l')
 acf(diff(dataset$MSPUS))
 pacf(diff(dataset$MSPUS))
-
-# plot(lm(MSPUS ~ time_index + GDP, data=dataset))
 ```
 
+
+## MCMC Approximation
+
+**Compiling Model**
 ```{r}
 train_data=list(
   N = nrow(dataset),
   y = t(as.matrix(dataset$MSPUS))
 )
+
+dim(train_data$y)
 n_samples = 1000
 
-dlm_mod <- cmdstan_model("simple_dlm.stan")
+dlm_mod <- cmdstan_model("source/bayesian_dlm.stan")
+```
 
+**Sampling**
+```{r}
 dlm_fit <- dlm_mod$sample(
   chains=1, 
   refresh=n_samples,
@@ -47,6 +64,7 @@ dlm_fit <- dlm_mod$sample(
 )
 ```
 
+## Summary Analysis
 ```{r}
 dlm_fit$summary()
 posterior_samples <- dlm_fit$draws(variables=c("beta1_t[2]"))
@@ -57,6 +75,8 @@ mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
 # Rank Plots
 mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```
+
+
 ```{r}
 y_preds_MCMC <- dlm_fit$draws(c("y_pred"), format="draws_matrix")[1:100, ]
 pp_check(dataset$MSPUS, y_preds_MCMC, fun="dens_overlay")
