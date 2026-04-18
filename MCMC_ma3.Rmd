@@ -27,9 +27,6 @@ plot(x=dataset$DATE, y=dataset$MSPUS,
      xlab="Date", type="l")
 ```
 
-- shows a slight increasing trend with slight fluctuations throughout time, potentially suggesting a Bayesian dynamic linear model (DLM)
-
-
 **ACF and PACF plots of Differenced Series**
 ```{r}
 # Predictions
@@ -70,8 +67,8 @@ qqline(arima_1_1$residuals)
 **Compiling Model**
 ```{r}
 train_data=list(
-  N = length(diff_y),
-  y = diff_y
+  N = length(diff_y_scaled),
+  y = diff_y_scaled
 )
 
 n_samples = 10000
@@ -86,9 +83,9 @@ ma3_fit <- ma3_mod$sample(
   seed=2026,
   chains=2, 
   refresh=n_samples,
-  iter_warmup=1000,
+  iter_warmup=2500, # Ensures that chain is sufficiently burned-in
   iter_sampling=n_samples,
-  data=train_data,
+  data=train_data, 
   show_exceptions=FALSE
 )
 ```
@@ -97,10 +94,10 @@ ma3_fit <- ma3_mod$sample(
 
 ### Summary
 ```{r}
-ma3_fit$summary()
+head(ma3_fit$summary())
 ```
 
-### FTrace and Rank Plots
+### Trace and Rank Plots
 ```{r}
 # Samples
 posterior_samples <- ma3_fit$draws(variables=c("mu", "eps[5]", "sigma"))
@@ -120,7 +117,7 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 # Checking Posterior Predictive Samples against Observed
 y_preds_MCMC <- ma3_fit$draws(c("y_post_pred"), format="draws_matrix")
 
-pp_check(diff_y, y_preds_MCMC[100:200, ], fun="dens_overlay")
+pp_check(diff_y_scaled, y_preds_MCMC[1:200, ], fun="dens_overlay")
 ```
 
 ### Posterior Predictive Mean vs Observed Data Series
@@ -160,14 +157,13 @@ ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
     
     mod_fit <- mod$sample(
       chains=1,
-      seed=2025, 
-      iter_warmup = 1000,
+      iter_warmup = 2500,
       refresh = n_samples ,
       iter_sampling = n_samples,
       data=train_data,
       show_messages=FALSE,
       show_exceptions = FALSE)
-      
+    
       y_pred_samples <- as.vector(
         mod_fit$draws(variables=c("y_pred"), 
                       format="matrix")
@@ -178,22 +174,22 @@ ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
       
       print(paste("Done CI for time:", t))
   }
-  
   return(data.frame(ci_lower, ci_upper))
 }
 ```
 
-
+**Running Credible Intervals**
 ```{r}
-l_t = 4
+l_t = 5
 u_t = 79
-ci_ma3 <- ci_ma3_cv(ma3_mod_cv, diff_y, n_samples=5000, lower_t=l_t, upper_t=u_t)
+
+ci_ma3 <- ci_ma3_cv(ma3_mod_cv, diff_y_scaled, n_samples=5000, lower_t=l_t, upper_t=u_t)
 ```
 
-**Cross-Validation Credible Intervals**
+**Cross-Validation: Calibration of Credible Intervals**
 ```{r}
 ci_and_obs = ci_ma3
-ci_and_obs['obs_diff_y'] = diff_y[l_t:u_t]
+ci_and_obs['obs_diff_y'] = diff_y_scaled[l_t:u_t]
 ci_and_obs <- ci_and_obs %>% 
               mutate(is_within_ci = (obs_diff_y >= ci_lower) & 
                                     (obs_diff_y <= ci_upper))
@@ -204,5 +200,12 @@ sum(ci_and_obs$is_within_ci) / nrow(ci_and_obs)
 **Visualized Credible Intervals**
 ```{r}
 ci_and_obs
+```
+
+## Exact Invariance Test
+
+### Forward Simulation
+```{r}
+
 ```
 

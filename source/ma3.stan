@@ -5,7 +5,7 @@ data {
 
 parameters {
   real mu;                   
-  vector[3] theta;                
+  vector<lower=-1, upper=1>[3] theta;                
   real<lower=0> sigma;
 }
 
