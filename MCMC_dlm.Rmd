@@ -22,8 +22,7 @@ source("source/data_sources_and_dependencies.R")
 
 **Time Series Plot**
 ```{r}
-data=data_scaled
-plot(x=data$DATE, y=data$MSPUS, 
+plot(x=dataset$DATE, y=dataset$MSPUS, 
      ylab="Median US House Price", 
      xlab="Date", type="l")
 ```
@@ -34,7 +33,10 @@ plot(x=data$DATE, y=data$MSPUS,
 **ACF and PACF plots of Differenced Series**
 ```{r}
 # Predictions
+diff_log_y = diff(log(dataset$MSPUS))
 diff_y = diff(dataset$MSPUS)
+diff_y_scaled = diff(data_scaled$MSPUS)
+
 plot(diff_y, type="l")
 ```
 
@@ -80,14 +82,14 @@ ma3_mod <- cmdstan_model("source/ma3.stan");
 
 **MCMC Sampling**
 ```{r}
-dlm_fit <- dlm_mod$sample(
-  seed=2,
+ma3_fit <- ma3_mod$sample(
+  seed=2026,
   chains=2, 
   refresh=n_samples,
-  iter_warmup=5000,
+  iter_warmup=1000,
   iter_sampling=n_samples,
   data=train_data,
-  show_exceptions = FALSE
+  show_exceptions=FALSE
 )
 ```
 
@@ -95,13 +97,13 @@ dlm_fit <- dlm_mod$sample(
 
 ### Summary
 ```{r}
-dlm_fit$summary()
+ma3_fit$summary()
 ```
 
-### Trace and Rank Plots
+### FTrace and Rank Plots
 ```{r}
 # Samples
-posterior_samples <- dlm_fit$draws(variables=c("mu", "theta"))
+posterior_samples <- ma3_fit$draws(variables=c("mu", "eps[5]", "sigma"))
 
 # Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
@@ -116,28 +118,90 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 ### Posterior Predictive Samples vs Observed Samples
 ```{r}
 # Checking Posterior Predictive Samples against Observed
-y_preds_MCMC <- dlm_fit$draws(c("y_post_pred"), format="draws_matrix")
+y_preds_MCMC <- ma3_fit$draws(c("y_post_pred"), format="draws_matrix")
 
-pp_check(diff_y, y_preds_MCMC_100[1:100, ], fun="dens_overlay")
+pp_check(diff_y, y_preds_MCMC[100:200, ], fun="dens_overlay")
 ```
 
 ### Posterior Predictive Mean vs Observed Data Series
+```{r}
+N = length(diff_y)
+posterior_means_y = as.vector(colMeans(y_preds_MCMC))
+
+one_sample <- as.vector(y_preds_MCMC[1, ])
+```
 
 #### Cross-Validation: Calibration of Credible Intervals
 - Compute nominal vs actual coverage with cross-validation method
 
-```{r}
 
-# Leave One out Method
-ci_post_pred <- function(mod_samples) {
+**Compile ma3 model for cross-validation**
+```{r}
+ma3_mod_cv <- cmdstan_model("source/ma3_cross_val.stan")
+```
+**MA(3) Cross-Validation Function**
+```{r}
+# Leave One out Method for 80% Credible Interval
+
+# t_lower >= 4
+# t_upper <= N
+
+ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
+  ci_lower = c()
+  ci_upper = c()
   
+  for (t in lower_t:upper_t) {
+    train_data = list(
+      N = length(data[-t]),
+      y = data[-t],
+      t_pred = t
+    )
+    
+    mod_fit <- mod$sample(
+      chains=1,
+      seed=2025, 
+      iter_warmup = 1000,
+      refresh = n_samples ,
+      iter_sampling = n_samples,
+      data=train_data,
+      show_messages=FALSE,
+      show_exceptions = FALSE)
+      
+      y_pred_samples <- as.vector(
+        mod_fit$draws(variables=c("y_pred"), 
+                      format="matrix")
+        )
+      ci = quantile(y_pred_samples, c(0.1, 0.9))
+      ci_lower = c(ci_lower, ci["10%"])
+      ci_upper = c(ci_upper, ci["90%"])
+      
+      print(paste("Done CI for time:", t))
+  }
+  
+  return(data.frame(ci_lower, ci_upper))
 }
 ```
 
 
+```{r}
+l_t = 4
+u_t = 79
+ci_ma3 <- ci_ma3_cv(ma3_mod_cv, diff_y, n_samples=5000, lower_t=l_t, upper_t=u_t)
+```
 
+**Cross-Validation Credible Intervals**
+```{r}
+ci_and_obs = ci_ma3
+ci_and_obs['obs_diff_y'] = diff_y[l_t:u_t]
+ci_and_obs <- ci_and_obs %>% 
+              mutate(is_within_ci = (obs_diff_y >= ci_lower) & 
+                                    (obs_diff_y <= ci_upper))
+ci_and_obs["time"] = l_t:u_t
+sum(ci_and_obs$is_within_ci) / nrow(ci_and_obs)
+```
 
-
-
-
+**Visualized Credible Intervals**
+```{r}
+ci_and_obs
+```
 

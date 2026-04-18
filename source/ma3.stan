@@ -31,25 +31,24 @@ model {
   theta ~ normal(0, 2.5);
   sigma ~ cauchy(0, 5);
   
-  // Likelihood 
-  for (t in 4:N) {
-      y ~ normal(
-        mu + theta[1]*eps[t-1] + theta[2]*eps[t-2] + theta[3]*eps[t-3], 
-        sigma);
-  }
+  // Likelihood
+  y[4:N] ~ normal(mu + theta[1]*eps[3:(N - 1)]
+                     + theta[2]*eps[2:(N - 2)]
+                     + theta[3]*eps[1:(N - 3)],
+                  sigma);
 }
 
 generated quantities {
   // Posterior Predictive Samples
-  vector[N] y_post_pred;
+  array[N] real y_post_pred;
   
   // Initial
-  y_post_pred[1:3] = rep_vector(0, 3);
-  
-  for (t in 4:N) {
-    y_post_pred[t] = normal_rng(mu + theta[1]*y[t-1]
-                                   + theta[2]*y[t-2]
-                                   + theta[3]*y[t-3], sigma);
-  }
+  y_post_pred[1] = normal_rng(mu, sigma);
+  y_post_pred[2] = normal_rng(mu + theta[1]*eps[1], sigma);
+  y_post_pred[3] = normal_rng(mu + theta[1]*eps[2] + theta[2]*eps[3], sigma);
+  y_post_pred[4:N] = normal_rng(mu + theta[1]*eps[3:(N - 1)]
+                                   + theta[2]*eps[2:(N - 2)]
+                                   + theta[3]*eps[1:(N - 3)], 
+                                   sigma);
 }
 

@@ -1,6 +1,6 @@
 data {
-  int<lower=1> T;            // num observations
-  array[T] real y;           // observed outputs
+  int<lower=1> N;            // num observations
+  array[N] real y;           // observed outputs
 }
 parameters {
   real mu;                   // mean coeff
@@ -9,13 +9,13 @@ parameters {
   real<lower=0> sigma;       // noise scale
 }
 model {
-  vector[T] nu;              // prediction for time t
-  vector[T] err;             // error for time t
+  vector[N] nu;              // prediction for time t
+  vector[N] err;             // error for time t
   
   nu[1] = mu + phi * mu;     // assume err[0] == 0
   err[1] = y[1] - nu[1];
   
-  for (t in 2:T) {
+  for (t in 2:N) {
     nu[t] = mu + phi * y[t - 1] + theta * err[t - 1];
     err[t] = y[t] - nu[t];
   }
