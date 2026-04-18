@@ -91,6 +91,13 @@ lines(y, x=date, col="red")
 **Cross-Validation: Prediction Accuracy using MAE and Cross-Validation Prediction Intervals**
 
 
+We compared SNIS and MCMC for the same baseline Bayesian linear regression model. The two methods produced very similar posterior results. The posterior means for SNIS and MCMC were 0.0002 and 0.0002 for the intercept, -0.0374 and -0.0630 for time_index, 1.0872 and 1.1105 for GDP, -0.0272 and -0.0236 for unemployment_rate, 0.1730 and 0.1701 for mortgage_rate, 0.2716 and 0.2713 for sigma. In both methods, GDP was the strongest positive predictor.
+
+The posterior uncertainty estimates were also close. For example, the posterior standard deviation of GDP was about 0.298 under SNIS and 0.305 under MCMC, while the posterior standard deviation of sigma was about 0.0225 under SNIS and 0.0223 under MCMC. This suggests that SNIS approximated both the center and spread of the posterior well.
+
+The predictive results were very similar. For the first observation, SNIS gave a predictive mean of about -1.635, while MCMC gave a predictive mean of about -1.640. Both methods also produced fitted values that followed the overall upward trend in house prices.
+
+Overall, both methods performed well and pretty similar.
 
 
 
