@@ -123,17 +123,17 @@ pp_check(diff_y, y_preds_MCMC_100[1:100, ], fun="dens_overlay")
 
 ### Posterior Predictive Mean vs Observed Data Series
 
-
-#### Credble Intervals: Calibration of Credible Intervals
+#### Cross-Validation: Calibration of Credible Intervals
 - Compute nominal vs actual coverage with cross-validation method
 
 ```{r}
+
+# Leave One out Method
 ci_post_pred <- function(mod_samples) {
   
 }
 ```
 
-#### 
 
 
 

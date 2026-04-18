@@ -49,7 +49,7 @@ generated quantities {
   for (t in 4:N) {
     y_post_pred[t] = normal_rng(mu + theta[1]*y[t-1]
                                    + theta[2]*y[t-2]
-                                   + theta[3]*y[t-2], sigma);
+                                   + theta[3]*y[t-3], sigma);
   }
 }
 
