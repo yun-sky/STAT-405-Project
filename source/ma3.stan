@@ -51,6 +51,5 @@ generated quantities {
                                    + theta[2]*y[t-2]
                                    + theta[3]*y[t-2], sigma);
   }
-  
 }
 

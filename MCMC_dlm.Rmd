@@ -40,7 +40,6 @@ plot(diff_y, type="l")
 
 
 ```{r}
-
 # Find best ARIMA model based on AIC
 arima_best_fit = auto.arima(diff_y)
 arima_1_1 = arima(diff_y, order=c(1, 1, 1))
@@ -79,7 +78,7 @@ ma3_mod <- cmdstan_model("source/ma3.stan");
 # arma11_mod <- cmdstan_model("source/arima.stan");
 ```
 
-**Sampling**
+**MCMC Sampling**
 ```{r}
 dlm_fit <- dlm_mod$sample(
   seed=2,
@@ -99,8 +98,6 @@ dlm_fit <- dlm_mod$sample(
 dlm_fit$summary()
 ```
 
-
-
 ### Trace and Rank Plots
 ```{r}
 # Samples
@@ -114,27 +111,31 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```
 
 
-**T**
+## Posterior Predictive Checks
+
+### Posterior Predictive Samples vs Observed Samples
 ```{r}
-y_preds_MCMC <- dlm_fit$draws(c("y_post_pred"), format="draws_matrix")[1:50,]
-pp_check(diff_y, y_preds_MCMC, fun="dens_overlay")
+# Checking Posterior Predictive Samples against Observed
+y_preds_MCMC <- dlm_fit$draws(c("y_post_pred"), format="draws_matrix")
+
+pp_check(diff_y, y_preds_MCMC_100[1:100, ], fun="dens_overlay")
 ```
 
+### Posterior Predictive Mean vs Observed Data Series
 
-**Code**
+
+#### Credble Intervals: Calibration of Credible Intervals
+- Compute nominal vs actual coverage with cross-validation method
+
 ```{r}
-ggplot(as.data.frame(log_y), aes(x=log_y)) + geom_density()
-
-vec_mcmc = as.vector((y_preds_MCMC[7, ]))
-y_pred_mcmc = as.data.frame(x = vec_mcmc)
-colnames(y_pred_mcmc) = c("y_pred")
-
-pp_check(vec_mcmc, y_preds_MCMC, fun="dens_overlay")
-pp_check(log_y, y_preds_MCMC, fun="dens_overlay")
-
-plot(y=vec_mcmc, x=dataset$time_index, type="l")
-plot(y=log_y, x=dataset$time_inde, type="l")
+ci_post_pred <- function(mod_samples) {
+  
+}
 ```
+
+#### 
+
+
 
 
 
