@@ -139,6 +139,7 @@ one_sample <- as.vector(y_preds_MCMC[1, ])
 ```{r}
 ma3_mod_cv <- cmdstan_model("source/ma3_cross_val.stan")
 ```
+
 **MA(3) Cross-Validation Function**
 ```{r}
 # Leave One out Method for 80% Credible Interval
