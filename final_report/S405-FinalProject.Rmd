@@ -328,7 +328,6 @@ Overall, both methods performed well and pretty similar.
 
 ## **Time-Series MA(3)**
 
-
 Our second model is a time-series model that only depends on past-lagged values, capturing the dynamic structure of the data, including trends, seasonality, and time dependence. To find the best-fit model based on AIC, we ran `auto.arima()` and it suggested the moving Average model with three lagged forecast error terms (MA(3)) to be the best. We performed first-order differencing of the scaled median housing price to align with the stationary assumptions of moving-average models. From this analysis, we formulated a bayesian MA(3) model with the following associated priors and likelihood:
 
 ### MA(3) with MCMC
@@ -399,8 +398,6 @@ mcmc_dens(vi_draws) +
 ```
 
 The above plot shows that all VI posterior densities follow normal distributions and are fairly concentrated. The posterior mean parameter $\mu$ is slightly positive, $\theta_2$ and $\theta_3$ are positive, $\theta_1$ is negative, and $\sigma$ centers near 0.15.
-
-
 
 
 ### Time-Series VI VS. MCMC
