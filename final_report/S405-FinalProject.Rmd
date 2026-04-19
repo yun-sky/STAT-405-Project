@@ -30,7 +30,7 @@ Since the response variable is recorded quarterly while the economic predictors 
 After merging the two data sets together, we checked for missing values and found no missing observations.
 
 ```{r}
-source("source/data_sources_and_dependencies.R")
+source("../source/data_sources_and_dependencies.R")
 head(dataset)
 ```
 
@@ -42,22 +42,9 @@ This previous study focuses on economic argument with literature discussion, whi
 
 ## **Exploratory Analysis**
 
-```{r, echo = FALSE, fig.show='hold', out.width='49%'}
-ggplot(dataset, aes(x = DATE, y = MSPUS)) +
-  geom_point() +
-  labs(x = "Date", y = "Median US housing price") +
-  ggtitle("Quarterly Median US Housing Price")
 
-suppressPackageStartupMessages(library(corrplot))
-numeric_data <- dataset[, sapply(dataset, is.numeric)]
-cor_matrix <- cor(numeric_data)
-corrplot(cor_matrix,
-         method = "color",
-         type = "upper",
-         addCoef.col = "black",
-         tl.col = "black",
-         tl.srt = 45)
-```
+
+**Insert figures**
 
 Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
 
@@ -97,7 +84,6 @@ The calculated ESS and posterior mean for each parameter are:
 ```{r, echo = FALSE}
 #setup
 set.seed(405)
-source("source/data_sources_and_dependencies.R")
 
 dataset <- dataset %>%
   na.omit() %>%
@@ -326,7 +312,6 @@ Overall, this model provides a good Bayesian baseline for the house-price data. 
 ```{r, include=FALSE}
 suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
-source("source/data_sources_and_dependencies.R")
 set.seed(405)
 data = data_scaled
 
@@ -343,7 +328,7 @@ train_data=list(
 )
 n_samples = 5000
 
-blr_mod <- cmdstan_model("source/bayesian_regression.stan")
+blr_mod <- cmdstan_model("../source/bayesian_regression.stan")
 
 blr_fit <- blr_mod$sample(
   chains=2,
@@ -396,8 +381,6 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(posterior))
 
-source("source/data_sources_and_dependencies.R")
-
 diff_y_scaled <- diff(data_scaled$MSPUS)
 
 
@@ -406,7 +389,7 @@ train_data <- list(
   y = diff_y_scaled
 )
 
-ma3_stan <- cmdstan_model("source/ma3.stan")
+ma3_stan <- cmdstan_model("../source/ma3.stan")
 
 ma3_vi <- ma3_stan$variational(
   data = train_data,

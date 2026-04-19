@@ -1,0 +1,30 @@
+---
+title: "exploratory_analysis"
+output: pdf_document
+date: "2026-4-19"
+---
+# Library Imports
+```{r}
+suppressPackageStartupMessages(library(corrplot))
+```
+
+
+
+# Correlation plots and Time series Plots
+```{r}
+ggplot(dataset, aes(x = DATE, y = MSPUS)) +
+  geom_point() +
+  labs(x = "Date", y = "Median US housing price") +
+  ggtitle("Quarterly Median US Housing Price")
+
+
+numeric_data <- dataset[, sapply(dataset, is.numeric)]
+cor_matrix <- cor(numeric_data)
+corrplot(cor_matrix,
+         method = "color",
+         type = "upper",
+         addCoef.col = "black",
+         tl.col = "black",
+         tl.srt = 45)
+```
+
