@@ -12,6 +12,7 @@ suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(posterior))
 
 source("source/data_sources_and_dependencies.R")
+source("scripts/one_step_prediction_functions.R")
 
 diff_y_scaled <- diff(data_scaled$MSPUS)
 
@@ -55,6 +56,50 @@ vi_draws <- ma3_vi$draws(variables = params_of_interest, format = "draws_matrix"
 mcmc_dens(vi_draws) +
   labs(title = "VI Posterior Approximation - MA(3)")
 
+```
+
+One step forcasts:
+```{r}
+ma3_mod_cv <- cmdstan_model("source/ma3_cross_val.stan")
+
+N <- length(diff_y_scaled)
+
+train_data_pred <- list(
+  N      = N - 1,
+  y      = diff_y_scaled[-N],
+  t_pred = N - 1        
+)
+
+ma3_vi_pred <- ma3_mod_cv$variational(
+  data        = train_data_pred,
+  seed        = 405,
+  algorithm   = "meanfield",
+  iter        = 50000,
+  tol_rel_obj = 0.001,
+  draws       = 10000
+)
+
+y_pred_samples <- as.vector(
+  ma3_vi_pred$draws(variables = "y_pred", format = "matrix")
+)
+
+test_point <- diff_y_scaled[N]
+
+pred_summary <- data.frame(
+  mean   = mean(y_pred_samples),
+  median = median(y_pred_samples),
+  sd     = sd(y_pred_samples),
+  q5     = quantile(y_pred_samples, 0.05),
+  q95    = quantile(y_pred_samples, 0.95),
+  actual = test_point
+)
+print(pred_summary)
+
+mase_vi <- compute_mase(
+  data.frame(y_pred = y_pred_samples), 
+  test_point
+)
+mase_vi
 ```
 
 
