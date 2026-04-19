@@ -28,9 +28,9 @@ transformed parameters {
 
 model {
   // Posterior Distribution
-  mu ~ normal(0, 10);     
-  theta ~ normal(0, 2.5);
-  sigma ~ cauchy(0, 5);
+  mu ~ normal(0, 1);     
+  theta ~ normal(0, 0.5);
+  sigma ~ cauchy(0, 1);
   
   // Likelihood
   y[4:N] ~ normal(mu + theta[1]*eps[3:(N - 1)]

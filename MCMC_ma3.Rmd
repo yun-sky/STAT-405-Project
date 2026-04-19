@@ -117,20 +117,11 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 # Checking Posterior Predictive Samples against Observed
 y_preds_MCMC <- ma3_fit$draws(c("y_post_pred"), format="draws_matrix")
 
-pp_check(diff_y_scaled, y_preds_MCMC[1:200, ], fun="dens_overlay")
-```
-
-### Posterior Predictive Mean vs Observed Data Series
-```{r}
-N = length(diff_y)
-posterior_means_y = as.vector(colMeans(y_preds_MCMC))
-
-one_sample <- as.vector(y_preds_MCMC[1, ])
+pp_check(diff_y_scaled, y_preds_MCMC[400:600, ], fun="dens_overlay")
 ```
 
 #### Cross-Validation: Calibration of Credible Intervals
 - Compute nominal vs actual coverage with cross-validation method
-
 
 **Compile ma3 model for cross-validation**
 ```{r}
@@ -163,7 +154,7 @@ ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
       data=train_data,
       show_messages=FALSE,
       show_exceptions = FALSE)
-    
+  
       y_pred_samples <- as.vector(
         mod_fit$draws(variables=c("y_pred"), 
                       format="matrix")
@@ -196,16 +187,39 @@ ci_and_obs <- ci_and_obs %>%
 ci_and_obs["time"] = l_t:u_t
 sum(ci_and_obs$is_within_ci) / nrow(ci_and_obs)
 ```
-
-**Visualized Credible Intervals**
+**Cross-Validation Visualized**
 ```{r}
-ci_and_obs
+ci_cv_plot <- ggplot(ci_and_obs, aes(x=time)) +
+    geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper, color=is_within_ci)) +
+    geom_point(aes(y=obs_diff_y, color=is_within_ci)) +
+    xlab("Time Index") +
+    ylab("Observed diff scaled median house price") +
+    labs(title="Credible Intervals Cross-Validation") +
+    theme(legend.position="none")
+  
+
+ci_cv_plot
 ```
 
-## Exact Invariance Test
 
-### Forward Simulation
+## Assessing Predictions 1-Step Forecast
+1. Retrain model without last-observation
+2. Compute a single credible interval for the one-step forecast
+
+
 ```{r}
 
 ```
+
+
+# Old Code
+### Posterior Predictive Mean vs Observed Data Series
+```{r}
+N = length(diff_y)
+posterior_means_y = as.vector(colmeans(y_preds_MCMC))
+posterior_means_y - diff_y_scaled
+one_sample <- as.vector(y_preds_MCMC[3, ])
+plot(posterior_means_y, type="l");
+```
+
 
