@@ -1,0 +1,56 @@
+---
+title: "03_ma3_mcmc"
+author: "Sky Yun"
+header-includes: 
+  - \usepackage{float}
+output: pdf_document
+---
+
+\begin{align*}
+\theta_k ~ cauchy 
+\end{align*}
+
+#### MCMC Sampling Results \newline
+It was quite difficult to sample from this MCMC chain due to the non-identifiability of the MA model. Putting more restrictive priors helped minimize divergences. We iterated 10000 MCMC samples with 2500 warmup iterations to sufficiently burn-in the MCMC chain. 
+
+```{r}
+
+```
+
+
+#### MCMCM Diagnostics: Posterior Predictive Checks and Trace Plots\
+In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that the nominal coverage (81.33%) of leave-one-out 80% credible intervals is sufficiently close to the actual coverage, suggesting that the model is fitting to the data well. Additionally, the trace-plots for for $\sigma$, $\mu$ and $\theta_1$ fluctuates rapidly around the posterior means which indicates that there is fast-mixing between chains. Trace plots for $\theta_1$ and $\theta_2$ can be observed in the appendix. Same results were shown through repeated trials. 
+
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{cc}
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/03_ma3_mcmc_pp_cv.png} &
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/03_ma3_mcmc_trace_pt1.png} 
+    \end{tabular}
+    \caption{Posterior Predictive Checks and MCMC Mixing Diagnostics}
+    \label{fig-ma3-mcmc-diagnostics}
+\end{figure}
+
+
+
+
+#### One-Step Forecast \newline
+
+Just like before, we leave the last value out and train the model on the rest of the data and randomly sample from the posterior predictive distribution for the 1-step forecast, resulting in the following sample distribution and prediction summaries. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/03_ma3_mcmc_pred_plot.png}
+    \caption{Posterior Predictive Sample vs Test Point}
+    \label{fig-ma3-pred}
+\end{figure}
+
+```{r pred-summary, echo=FALSE}
+read.csv("../figs/tables/03_ma3_mcmc_pred_summary.csv", header=TRUE)
+```
+
+The sample distribution is approximately normal as expected and we can observe that the test point is actually quite close to the posterior predictive median, suggesting that the samples are approximating the one-step forecast well. From figure \ref{fig-ma3-pred}. We can observe from the summaries that the MASE of $0.8104$ is much lower compared to the bayesian linear regression case. 
+
+
+
+

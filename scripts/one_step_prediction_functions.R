@@ -28,9 +28,10 @@ summary_one_step <- function(y_pred_samples, test_point) {
   summary_pred = data.frame(
     obs_value = test_point,
     mase = mase, 
-    median = ci_pred["50%"],
-    q5 = ci_pred["5%"],
-    q95 = ci_pred["95%"]
+    median = unname(ci_pred["50%"]),
+    q5 = unname(ci_pred["5%"]),
+    q95 = unname(ci_pred["95%"])
   )
-  print(summary_pred)
+  
+  return(summary_pred)
 }
