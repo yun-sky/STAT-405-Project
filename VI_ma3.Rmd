@@ -1,0 +1,74 @@
+---
+title: "VI_ma3"
+output: pdf_document
+date: "2026-04-19"
+---
+
+```{r}
+
+library(cmdstanr)
+library(bayesplot)
+library(dplyr)
+library(ggplot2)
+library(posterior)
+
+
+source("source/data_sources_and_dependencies.R")
+
+diff_y_scaled <- diff(data_scaled$MSPUS)
+
+
+train_data <- list(
+  N = length(diff_y_scaled),
+  y = diff_y_scaled
+)
+
+
+ma3_mod <- cmdstan_model("source/ma3.stan")
+
+
+ma3_vi <- ma3_mod$variational(
+  data           = train_data,
+  seed           = 2026,
+  algorithm      = "fullrank",
+  iter           = 50000,
+  tol_rel_obj    = 0.001,
+  draws          = 10000,
+  output_samples = 10000,
+  elbo_samples   = 500,
+  grad_samples   = 5
+)
+
+
+params_of_interest <- c("mu", "theta[1]", "theta[2]", "theta[3]", "sigma")
+
+vi_summary <- posterior::as_draws_df(ma3_vi$draws()) %>%
+  as.data.frame() %>%
+  dplyr::select(any_of(params_of_interest)) %>%
+  tidyr::pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  dplyr::group_by(variable) %>%
+  dplyr::summarise(
+    mean   = mean(value),
+    median = median(value),
+    sd     = sd(value),
+    mad    = mad(value),
+    q5     = quantile(value, 0.05),
+    q95    = quantile(value, 0.95),
+    .groups = "drop"
+  ) %>%
+  as.data.frame()
+
+cat("\n## VI Diagnostics\n")
+cat("### Summary\n")
+print(vi_summary)
+
+
+vi_draws <- ma3_vi$draws(variables = params_of_interest, format = "draws_matrix")
+
+mcmc_dens(vi_draws) +
+  theme_minimal() +
+  labs(title = "VI Posterior Approximation - MA(3) Parameters")
+
+```
+
+
