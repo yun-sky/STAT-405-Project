@@ -186,6 +186,9 @@ ci_and_obs <- ci_and_obs %>%
                                     (obs_diff_y <= ci_upper))
 ci_and_obs["time"] = l_t:u_t
 sum(ci_and_obs$is_within_ci) / nrow(ci_and_obs)
+
+# write.csv(ci_and_obs, "source/samples/ma3_cv.csv")
+
 ```
 **Cross-Validation Visualized**
 ```{r}
@@ -196,8 +199,6 @@ ci_cv_plot <- ggplot(ci_and_obs, aes(x=time)) +
     ylab("Observed diff scaled median house price") +
     labs(title="Credible Intervals Cross-Validation") +
     theme(legend.position="none")
-  
-
 ci_cv_plot
 ```
 
@@ -206,9 +207,33 @@ ci_cv_plot
 1. Retrain model without last-observation
 2. Compute a single credible interval for the one-step forecast
 
-
+**MCMC Sampling for Predicition of One-Step Forecast**
 ```{r}
+N = length(diff_y_scaled)
 
+train_data = list(
+  N = N,
+  y = diff_y_scaled[-N],
+  t_pred = N
+)
+
+test_point = diff_y_scaled[N]
+  
+ma3_pred_mod = ma3_mod_cv$sample(
+      chains=1,
+      seed = 2025,
+      iter_warmup = 2500,
+      refresh = n_samples ,
+      iter_sampling = n_samples,
+      data=train_data,
+      show_messages=FALSE,
+      show_exceptions = FALSE)
+```
+
+**Compare Test and y_pred point**
+```{r}
+y_pred = ma3_pred_mod$draws(variable="y_pred", format="matrix")
+test_point
 ```
 
 
