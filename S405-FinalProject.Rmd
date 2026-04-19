@@ -11,9 +11,9 @@ suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(ggplot2))
 ```
 
-## Introduction
+## **Introduction**
 
-Our team worked with two U.S. housing-related datasets to study how well bayesian linear regression models can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model fitted only on time with another Bayesian linear regression model fitted on purely economic predictors, excluding time, to determine which model better predicts quarterly median U.S. house prices.
+Our team worked with two U.S. housing-related datasets to study how well bayesian methods can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model with a time-series model, to determine which model better predicts quarterly median U.S. house prices.
 
 The main response dataset is the "Quarterly Median U.S. House Prices" dataset, where the response variable is:
 
@@ -34,13 +34,13 @@ source("source/data_sources_and_dependencies.R")
 head(dataset)
 ```
 
-## Literature Review
+## **Literature Review**
 
 Previous study on the Median US Housing Price written by Yuxiao Chen argued that during the federal reserve’s continuous interest rate increases in 2022-2023, the US house prices were expected to drop, but not fall sharply. The results showed that US house prices were still increasing, but at a lower rate. First, mortgage rates don't depend solely on interest rates, it is influenced more by inflation expectations and US federal demand for US bonds. Also, housing prices are sticky, so they may take years to adjust to market changes. 
 
 This previous study focuses on economic argument with literature discussion, while our analysis is much more statistical and Bayesian. We build Bayesian models to predict and explain median US housing prices using macroeconomic factors, like GDP, unemployment rate, and mortgage rate. The study done by Yuxiao Chen relies more on economic reasoning and historical discussions. 
 
-## Exploratory Analysis
+## **Exploratory Analysis**
 
 ```{r, echo = FALSE, fig.show='hold', out.width='49%'}
 ggplot(dataset, aes(x = DATE, y = MSPUS)) +
@@ -60,6 +60,8 @@ corrplot(cor_matrix,
 ```
 
 Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
+
+## **Simple Linear Regression Model**
 
 Our naive model:
 
@@ -87,7 +89,7 @@ y_t|\mu_t &\sim N(\mu_t, \sigma) \\
 \end{aligned}
 $$
 
-## Simple Linear Regression Model with SNIS
+### Simple Linear Regression Model with SNIS
 
 After initializing and running the SNIS algorithm with re-sampling, we came to the following outputs.
 
@@ -319,7 +321,7 @@ Posterior predictive checks indicate that the model fits the data reasonably wel
 
 Overall, this model provides a good Bayesian baseline for the house-price data. It yields stable posterior inference, identifies GDP as the main predictor, and captures the main pattern in the data.
 
-## Simple Linear Regression Model with MCMC
+### Simple Linear Regression Model with MCMC
 
 ```{r, include=FALSE}
 suppressPackageStartupMessages(library(cmdstanr))
@@ -368,7 +370,7 @@ one_sample <- as.vector(y_preds_MCMC[1,])
 ```
 
 
-## OLS SNIS VS. MCMC
+### OLS SNIS VS. MCMC
 
 We compared SNIS and MCMC for the same baseline Bayesian linear regression model. The two methods produced very similar posterior results. The posterior means for SNIS and MCMC were 0.0003 and -0.0003 for the intercept, -0.0419 and -0.0660 for time_index, 1.0866 and 1.11 for GDP, -0.0295 and -0.0233 for unemployment_rate, 0.1681 and 0.170 for mortgage_rate, 0.2715 and 0.271 for sigma. In both methods, GDP was the strongest positive predictor.
 
@@ -377,3 +379,80 @@ The posterior uncertainty estimates were also close. For example, the posterior 
 The predictive results were very similar. For the first observation, SNIS gave a predictive mean of about -1.635, while MCMC gave a predictive mean of about -1.640. Both methods also produced fitted values that followed the overall upward trend in house prices.
 
 Overall, both methods performed well and pretty similar.
+
+
+## **Time-Series MA(3)**
+
+Our second model is a time-series model, capturing the dynamic structure of the data, including trends, seasonality, and time dependence. To find the best-fit model based on AIC, we ran `auto.arima()` and it suggested the Moving Average model with three lagged forecast error terms (MA(3)) to be the best.
+
+### MA(3) with Variational Inference
+
+The following table produces the VI posterior summaries for the model parameters. Each parameter is presented with its mean, median, standard deviation, median absolute deviation, and the 5th and 95th posterior quantiles.
+
+```{r, include = FALSE}
+suppressPackageStartupMessages(library(cmdstanr))
+suppressPackageStartupMessages(library(bayesplot))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(posterior))
+
+source("source/data_sources_and_dependencies.R")
+
+diff_y_scaled <- diff(data_scaled$MSPUS)
+
+
+train_data <- list(
+  N = length(diff_y_scaled),
+  y = diff_y_scaled
+)
+
+ma3_stan <- cmdstan_model("source/ma3.stan")
+
+ma3_vi <- ma3_stan$variational(
+  data = train_data,
+  seed = 405,
+  algorithm = "meanfield",
+  iter = 10000,
+  tol_rel_obj = 0.001,
+  draws = 10000
+)
+
+params_of_interest <- c("mu", "theta[1]", "theta[2]", "theta[3]", "sigma")
+
+vi_summary <- posterior::as_draws_df(ma3_vi$draws()) %>%
+  dplyr::select(any_of(params_of_interest)) %>%
+  tidyr::pivot_longer(everything(), names_to = "variable", values_to = "value") %>%
+  dplyr::group_by(variable) %>%
+  dplyr::summarise(
+    mean   = mean(value),
+    median = median(value),
+    sd     = sd(value),
+    mad    = mad(value),
+    q5     = quantile(value, 0.05),
+    q95    = quantile(value, 0.95),
+    .groups = "drop"
+  )
+```
+
+```{r, echo = FALSE}
+print(vi_summary)
+```
+
+The intercept $\mu$ (mean = 0.0569, 90% CI: 0.020–0.093) captures a small upward drift in quarterly US house price changes. The entire credible interval above zero states that this trend is not just white noise.
+
+$\theta_3$ from the model has the largest positive mean value (mean = 0.322, 90% CI: 0.144–0.487), which indicates that shocks from three quarters ago pushes quarterly house price in the same direction. $\theta_2$ shows a weaker effect at 0.175, while $\theta_1$ suggests negative effect with a value of -0.150. The noise term $\sigma$ (mean = 0.150, 90% CI: 0.131–0.172) is not too large, indicating the model is fairly stable.
+
+```{r, echo = FALSE, fig.show='hold', out.width='70%'}
+vi_draws <- ma3_vi$draws(variables = params_of_interest, format = "draws_matrix")
+
+mcmc_dens(vi_draws) +
+  labs(title = "VI Posterior Approximation - MA(3)")
+```
+
+The above plot shows that all VI posterior densities follow normal distributions and are fairly concentrated. The posterior mean parameter $\mu$ is slightly positive, $\theta_2$ and $\theta_3$ are positive, $\theta_1$ is negative, and $\sigma$ centers near 0.15.
+
+### MA(3) with MCMC
+
+
+### Time-Series VI VS. MCMC
+
