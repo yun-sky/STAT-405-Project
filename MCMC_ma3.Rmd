@@ -32,7 +32,9 @@ plot(x=dataset$DATE, y=dataset$MSPUS,
 # Predictions
 diff_log_y = diff(log(dataset$MSPUS))
 diff_y = diff(dataset$MSPUS)
-diff_y_scaled = diff(data_scaled$MSPUS)
+
+y_scaled = data_scaled$MSPUS
+diff_y_scaled = diff(y_scaled )
 
 plot(diff_y, type="l")
 ```
@@ -212,16 +214,13 @@ ci_cv_plot
 N = length(diff_y_scaled)
 
 train_data = list(
-  N = N,
+  N = N-1,
   y = diff_y_scaled[-N],
   t_pred = N
 )
-
-test_point = diff_y_scaled[N]
-  
 ma3_pred_mod = ma3_mod_cv$sample(
       chains=1,
-      seed = 2025,
+      seed = 2026,
       iter_warmup = 2500,
       refresh = n_samples ,
       iter_sampling = n_samples,
@@ -232,8 +231,45 @@ ma3_pred_mod = ma3_mod_cv$sample(
 
 **Compare Test and y_pred point**
 ```{r}
-y_pred = ma3_pred_mod$draws(variable="y_pred", format="matrix")
-test_point
+
+y_pred_samples = ma3_pred_mod$draws(variable="y_pred", format="df")
+
+
+y_pred_samples["diff_y_pred"] = y_pred_samples["y_pred"]
+
+# undifference the predictions
+y_pred_samples["y_pred"] = y_pred_samples["diff_y_pred"] + y_scaled[N]
+
+y_pred = y_pred_samples$y_pred
+test_point = diff_y_scaled[N] + y_scaled[N]   
+y_pred_median = median(as.numeric(y_pred_samples$y_pred))
+
+# Credible Interval
+ci_pred = quantile(y_pred_samples$y_pred, c(0.05, 0.95))
+ci_pred_l = ci_pred["5%"]
+ci_pred_u = ci_pred["95%"]
+
+# Create within ci region
+within_ci_values <- y_pred_samples %>%
+  filter((y_pred >= ci_pred_l) & (y_pred <= ci_pred_u)) %>%
+  select("y_pred")
+
+
+# Density Plot
+y_pred_density_plot <- ggplot(y_pred_samples, aes(x=y_pred)) +
+  geom_density(color="blue") +
+  geom_vline(aes(xintercept=test_point, linetype="Test Point")) +
+  geom_vline(aes(xintercept=y_pred_median, linetype="Post Pred Median")) +
+  labs(title="1-step forecast Posterior Predictive distribution")
+
+
+# Compute the Expected MAE with respect to posterior predictive distribution
+sigma_pred = sd(y_pred_samples$y_pred)
+expected_scaled_mae = mean(abs(test_point - y_pred) / sigma_pred)
+
+
+print(expected_scaled_mae)
+y_pred_density_plot
 ```
 
 
