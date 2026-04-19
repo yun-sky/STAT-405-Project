@@ -5,7 +5,7 @@ date: "2026-04-16"
 output: html_document
 ---
 
-## Library Imports
+# Library Imports
 ```{r}
 suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
@@ -14,42 +14,7 @@ source("source/data_sources_and_dependencies.R")
 source("scripts/mcmc_sampling_functions.R")
 ```
 
-
-## Time Series Exploratory Analysis
-```{r}
-plot(x=dataset$DATE, y=dataset$MSPUS, 
-     ylab="Median US House Price", 
-     xlab="Date", type="l")
-```
-
-**ACF and PACF plots of Differenced Series**
-```{r}
-# Predictions
-diff_log_y = diff(log(dataset$MSPUS))
-diff_y = diff(dataset$MSPUS)
-
-y_scaled = data_scaled$MSPUS
-diff_y_scaled = diff(y_scaled)
-
-plot(diff_y, type="l", xlab="Time Index", ylab="diff scaled MHP")
-```
-
-
-```{r}
-# Find best ARIMA model based on AIC
-arima_best_fit = auto.arima(diff_y)
-summary(arima_best_fit)
-```
-
-**Residual Checking**
-```{r}
-# Approximately Normal Residuals
-# MA(3) Model
-qqnorm(arima_best_fit$residuals, main="MA(3)")
-qqline(arima_best_fit$residuals)
-```
-
-## MCMC Approximation
+# MCMC Approximation
 ```{r}
 n_samples = 10000
 train_data=list(
@@ -60,7 +25,7 @@ train_data=list(
 ma3_mod <- cmdstan_model("source/ma3.stan");
 ```
 
-**MCMC Sampling**
+## MCMC Sampling
 ```{r}
 ma3_fit <- ma3_mod$sample(
   seed=2026,
@@ -73,8 +38,6 @@ ma3_fit <- ma3_mod$sample(
 )
 ```
 
-## MCMC Diagnostics
-
 ### Summary
 ```{r}
 ma3_mcmc_fit_summary <- ma3_fit$summary()
@@ -82,9 +45,10 @@ ma3_mcmc_fit_summary <- ma3_fit$summary()
 variables = c("mu","theta[1]", "theta[2]", "theta[3]", "sigma")
 ma3_mcmc_clean_summary <- clean_mcmc_summary(variables, ma3_mcmc_fit_summary)
 
-ma3_mcmc_fit_summary
-ma3_mcmc_clean_summary
+head(ma3_mcmc_fit_summary)
 ```
+
+## MCMC Diagnostics
 
 ### Trace and Rank Plots
 ```{r}
@@ -99,31 +63,24 @@ mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```
 
 
-## Posterior Predictive Checks
+### Posterior Predictive Checks
 
-### Posterior Predictive Samples vs Observed Samples
+**Posterior Predictive Samples vs Observed Samples**
 ```{r}
 # Checking Posterior Predictive Samples against Observed
 y_preds_MCMC <- ma3_fit$draws(c("y_post_pred"), format="draws_matrix")
-
-pp_check(diff_y_scaled, y_preds_MCMC[400:600, ], fun="dens_overlay", plotfun="pp")
+pp_check(diff_y_scaled, y_preds_MCMC[400:600, ], fun="dens_overlay")
 ```
 
-#### Cross-Validation: Calibration of Credible Intervals
-- Compute nominal vs actual coverage with cross-validation method
-
-**Compile ma3 model for cross-validation**
-```{r}
-ma3_mod_cv <- cmdstan_model("source/ma3_cross_val.stan")
-```
+**Cross-Validation: Calibration of Credible Intervals**
 
 **MA(3) Cross-Validation Function**
 ```{r}
 # Leave One out Method for 80% Credible Interval
 
+ma3_mod_cv <- cmdstan_model("source/ma3_cross_val.stan")
 # t_lower >= 4
 # t_upper <= N
-
 ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
   ci_lower = c()
   ci_upper = c()
@@ -160,9 +117,9 @@ ci_ma3_cv <- function(mod, data, n_samples, lower_t, upper_t) {
 
 **Running Credible Intervals**
 ```{r}
+# If Slow at start rerun function
 l_t = 5
 u_t = 79
-
 ci_ma3 <- ci_ma3_cv(ma3_mod_cv, diff_y_scaled, n_samples=5000, lower_t=l_t, upper_t=u_t)
 ```
 
@@ -175,9 +132,6 @@ ci_and_obs <- ci_and_obs %>%
                                     (obs_diff_y <= ci_upper))
 ci_and_obs["time"] = l_t:u_t
 sum(ci_and_obs$is_within_ci) / nrow(ci_and_obs)
-
-# write.csv(ci_and_obs, "source/samples/ma3_cv.csv")
-
 ```
 
 **Cross-Validation Visualized**
@@ -232,6 +186,13 @@ y_pred_median = median(as.numeric(y_pred_samples$y_pred))
 summary_one_step <- summary_one_step(y_pred_samples, test_point)
 plot_one_step_forecast_density(y_pred_samples, test_point)
 summary_one_step
-
-write.csv(summary_one_step, "figs/tables/03_ma3_mcmc_pred_summary.csv", row.names=FALSE)
 ```
+
+
+# Writing CSV Files for Report
+```{r}
+# write.csv(summary_one_step, "figs/tables/03_ma3_mcmc_pred_summary.csv", row.names=FALSE)
+# write.csv(ma3_mcmc_clean_summary, "figs/tables/03_ma3_mcmc_clean_summary.csv")
+```
+
+
