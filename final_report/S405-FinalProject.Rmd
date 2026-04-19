@@ -2,6 +2,8 @@
 title: "STAT405 Final Report"
 output: pdf_document
 author: "Lily Wang (62800495), Sky Yun (55333710), Zhengxi Yuan (15025604)"
+header-includes:
+    - \usepackage{float}
 date: "2026-03-23"
 ---
 
@@ -309,49 +311,7 @@ Overall, this model provides a good Bayesian baseline for the house-price data. 
 
 ### Simple Linear Regression Model with MCMC
 
-```{r, include=FALSE}
-suppressPackageStartupMessages(library(cmdstanr))
-suppressPackageStartupMessages(library(bayesplot))
-set.seed(405)
-data = data_scaled
-
-date = data$DATE
-y = data$MSPUS
-
-train_data=list(
-  N = nrow(dataset),
-  y = y,
-  time = data$time_index,
-  gdp = data$GDP,
-  unempl_rate = data$unemployment_rate,
-  mortgage_rate = data$mortgage_rate
-)
-n_samples = 5000
-
-blr_mod <- cmdstan_model("../source/bayesian_regression.stan")
-
-blr_fit <- blr_mod$sample(
-  chains=2,
-  refresh=n_samples,
-  iter_warmup=1000,
-  iter_sampling=n_samples,
-  data=train_data
-)
-```
-
-```{r, echo=FALSE}
-set.seed(405) 
-blr_fit$summary() |>
-  select(-rhat, -ess_bulk, -ess_tail, -mad)
-```
-
-```{r, echo=FALSE, fig.show='hold', out.width='60%'}
-set.seed(405)
-# Check First 100 Reps
-y_preds_MCMC <- blr_fit$draws(c("y_pred"), format="draws_matrix")[1:1000, ]
-pp_check(y, y_preds_MCMC, fun="dens_overlay")
-
-one_sample <- as.vector(y_preds_MCMC[1,])
+```{r child="02_blr_mcmc.Rmd"}
 ```
 
 
@@ -368,7 +328,13 @@ Overall, both methods performed well and pretty similar.
 
 ## **Time-Series MA(3)**
 
+
 Our second model is a time-series model that only depends on past-lagged values, capturing the dynamic structure of the data, including trends, seasonality, and time dependence. To find the best-fit model based on AIC, we ran `auto.arima()` and it suggested the moving Average model with three lagged forecast error terms (MA(3)) to be the best. We performed first-order differencing of the scaled median housing price to align with the stationary assumptions of moving-average models. From this analysis, we formulated a bayesian MA(3) model with the following associated priors and likelihood:
+
+### MA(3) with MCMC
+
+```{r child="03_ma3_mcmc.Rmd"}
+```
 
 ### MA(3) with Variational Inference
 
@@ -434,7 +400,7 @@ mcmc_dens(vi_draws) +
 
 The above plot shows that all VI posterior densities follow normal distributions and are fairly concentrated. The posterior mean parameter $\mu$ is slightly positive, $\theta_2$ and $\theta_3$ are positive, $\theta_1$ is negative, and $\sigma$ centers near 0.15.
 
-### MA(3) with MCMC
+
 
 
 ### Time-Series VI VS. MCMC
