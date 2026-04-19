@@ -11,6 +11,7 @@ suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
 suppressPackageStartupMessages(library(forecast))
 source("source/data_sources_and_dependencies.R")
+source("scripts/mcmc_sampling_functions.R")
 ```
 
 
@@ -76,7 +77,13 @@ ma3_fit <- ma3_mod$sample(
 
 ### Summary
 ```{r}
-head(ma3_fit$summary())
+ma3_mcmc_fit_summary <- ma3_fit$summary()
+
+variables = c("mu","theta[1]", "theta[2]", "theta[3]", "sigma")
+ma3_mcmc_clean_summary <- clean_mcmc_summary(variables, ma3_mcmc_fit_summary)
+
+ma3_mcmc_fit_summary
+ma3_mcmc_clean_summary
 ```
 
 ### Trace and Rank Plots

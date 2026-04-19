@@ -1,0 +1,5 @@
+---
+title: "02_blr_mcmc"
+author: "Sky Yun"
+output: pdf_document
+---
