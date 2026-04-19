@@ -43,13 +43,7 @@ plot(diff_y, type="l")
 ```{r}
 # Find best ARIMA model based on AIC
 arima_best_fit = auto.arima(diff_y)
-arima_1_1 = arima(diff_y, order=c(1, 1, 1))
-
-# mu, ar1, ma1, ma2 parameters
 summary(arima_best_fit)
-
-# mu, ar1, ma1 parameters
-summary(arima_1_1)
 ```
 
 **Residual Checking**
@@ -58,25 +52,17 @@ summary(arima_1_1)
 # MA(3) Model
 qqnorm(arima_best_fit$residuals, main="MA(3)")
 qqline(arima_best_fit$residuals)
-
-# ARIMA(1, 1) Model
-qqnorm(arima_1_1$residuals, main="ARMA(1, 1)")
-qqline(arima_1_1$residuals)
 ```
 
 ## MCMC Approximation
-
-**Compiling Model**
 ```{r}
+n_samples = 10000
 train_data=list(
   N = length(diff_y_scaled),
   y = diff_y_scaled
 )
 
-n_samples = 10000
-
 ma3_mod <- cmdstan_model("source/ma3.stan");
-# arma11_mod <- cmdstan_model("source/arima.stan");
 ```
 
 **MCMC Sampling**
@@ -198,7 +184,7 @@ ci_cv_plot <- ggplot(ci_and_obs, aes(x=time)) +
     geom_errorbar(aes(ymin=ci_lower, ymax=ci_upper, color=is_within_ci)) +
     geom_point(aes(y=obs_diff_y, color=is_within_ci)) +
     xlab("Time Index") +
-    ylab("Observed diff scaled median house price") +
+    ylab("Observed diff") +
     labs(title="Credible Intervals Cross-Validation") +
     theme(legend.position="none")
 ci_cv_plot
@@ -219,7 +205,7 @@ train_data = list(
 
 ma3_pred_fit = ma3_mod_cv$sample(
       chains=1,
-      seed = 2026,
+      seed = 2027,
       iter_warmup = 2500,
       refresh = n_samples ,
       iter_sampling = n_samples,
@@ -228,8 +214,8 @@ ma3_pred_fit = ma3_mod_cv$sample(
       show_exceptions = FALSE)
 ```
 
-**Compare Test and y_pred point**
-```{r}
+**Compare test with prediction samples**
+```{r warning=FALSE}
 source("scripts/one_step_prediction_functions.R")
 
 y_pred_samples = ma3_pred_fit$draws(variable="y_pred", format="df")

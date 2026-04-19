@@ -5,22 +5,23 @@ date: "2026-04-12"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 ```{r}
 suppressPackageStartupMessages(library(cmdstanr))
 suppressPackageStartupMessages(library(bayesplot))
 source("source/data_sources_and_dependencies.R")
 ```
+
 # Simple BLR MCMC Approximation
+```{r}
+# Global Variables
+n_samples = 5000
+y_scaled = data_scaled$MSPUS
+seed=2026
+```
+
 
 ## MCMC Sampling
 ```{r}
-
-y_scaled = data_scaled$MSPUS
-
 train_data=list(
   N = length(y_scaled),
   y = y_scaled,
@@ -30,11 +31,10 @@ train_data=list(
   mortgage_rate = data_scaled$mortgage_rate
 )
 
-n_samples = 5000
 blr_mod <- cmdstan_model("source/bayesian_regression.stan")
-
 blr_fit <- blr_mod$sample(
   chains=2,
+  seed=seed,
   refresh=n_samples,
   iter_warmup=1000,
   iter_sampling=n_samples,
@@ -43,7 +43,7 @@ blr_fit <- blr_mod$sample(
 ```
 ### Summary
 ```{r}
-blr_fit$summary()
+blr_fit$summary()[1:10, ]
 ```
 
 
@@ -51,12 +51,10 @@ blr_fit$summary()
 
 ### Trace Plots and Rank Plots: Fast-Mixing Conditions
 ```{r}
-posterior_samples <- blr_fit$draws(variables=c("beta0", "beta1", "sigma"), format="draws_df")
+posterior_samples <- blr_fit$draws(variables=c("beta1", "beta0", "sigma"), format="draws_df")
 
-# Trace Plots
 mcmc_trace(posterior_samples, facet_args=list(ncol=1)) + theme_minimal()
 
-# Rank Plots
 mcmc_rank_hist(posterior_samples) + theme_minimal()
 ```
 - Trace plots samples oscillate rapidly indicating fast-mixing 
@@ -74,8 +72,6 @@ one_sample <- as.vector(y_preds_MCMC[1,])
 ```
 
 
-# Predictive Accuracy: 
-
 **Posterior Mean Estimation**
 ```{r}
 posterior_means_y = as.vector(colMeans(y_preds_MCMC))
@@ -83,21 +79,16 @@ plot(posterior_means_y, type="l")
 lines(y_scaled, col="red")
 ```
 
-- Fits pretty well for the first peak, for the second peak.  
-
 **Cross-Validation: Prediction Accuracy using MAE and Cross-Validation Prediction Intervals**
 
 ## One-Step Forecast Prediction
 
-**MCMC Sampling of One-Step Forecast**
-
-Function Definition
-
+**MCMC Sampling for One-Step Forecast**
 ```{r}
 blr_pred_mod <- cmdstan_model("source/bayesian_regression_pred.stan")
 
 # RETURNS: dataframe of MCMC samples of 1-step forecast
-y_pred_sampling <- function(data, n_samples, t_pred) {
+y_pred_sampling <- function(data, n_samples, t_pred, seed=NULL) {
   N = nrow(data)
   
   train_data = list(
@@ -112,7 +103,7 @@ y_pred_sampling <- function(data, n_samples, t_pred) {
   
   blr_pred_fit <- blr_pred_mod$sample(
     chains=1,
-    seed=2026,
+    seed=seed,
     iter_warmup=1000,
     iter_sampling=n_samples,
     data=train_data,
@@ -130,10 +121,10 @@ source("scripts/one_step_prediction_functions.R")
 
 N = length(y_scaled) # index of last observation in time series
 test_point = y_scaled[N] #
-y_pred_samples = y_pred_sampling(data_scaled, 10000, N)
+y_pred_samples = y_pred_sampling(data_scaled, 10000, N, 3)
 
-plot_one_step_forecast_density(y_pred_samples, test_point)
 summary_one_step(y_pred_samples, test_point)
+plot_one_step_forecast_density(y_pred_samples, test_point)
 ```
 
 We compared SNIS and MCMC for the same baseline Bayesian linear regression model. The two methods produced very similar posterior results. The posterior means for SNIS and MCMC were 0.0002 and 0.0002 for the intercept, -0.0374 and -0.0630 for time_index, 1.0872 and 1.1105 for GDP, -0.0272 and -0.0236 for unemployment_rate, 0.1730 and 0.1701 for mortgage_rate, 0.2716 and 0.2713 for sigma. In both methods, GDP was the strongest positive predictor.
