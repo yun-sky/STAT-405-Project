@@ -6,14 +6,14 @@ header-includes:
 output: pdf_document
 ---
 
-#### MCMC Sampling Results \newline
+### MCMC Sampling Results
 We ran the MCMC sampler for 10000 iterations with 2500 warm-up iterations to ensure that the MCMC chain is sufficiently burned-in. Based on the posterior mean, GDP has the largest coefficient, which is consistent with the the results found in posterior approximation using SNIS. It appears that the associated standard deviations for the paramters are slightly larger than the ones given my SNIS which may indicate that the there is slightly more uncertainty involved when estimating the parameters using the MCMC method. 
 
 ```{r echo=FALSE}
 knitr::kable(read.csv("../figs/tables/02_blr_mcmc_clean_summary.csv"), caption="Posterior Summary for BLR MCMC")
 ```
 
-#### MCMC Diagnostics: Posterior Predictive Checks and Trace Plots \newline
+### MCMC Diagnostics: Posterior Predictive Checks and Trace Plots \newline
 
 \begin{figure}[H]
     \centering
@@ -27,7 +27,7 @@ knitr::kable(read.csv("../figs/tables/02_blr_mcmc_clean_summary.csv"), caption="
 
 We can observe above that the posterior predictive samples sufficiently capture most of the variation of the observed data but struggles to fit the smaller peaks. The trace plots for $\sigma$ and $\beta_0$, $\beta_1$ between the two chains are somewhat indistinguishable from each other and there are no observable trends or patterns, suggesting fast-mixing in our MCMC algorithm. Repeated trials provided similar results. 
 
-#### One-Step Forecast Assessment \newline
+### One-Step Forecast Assessment 
 We will compute mean absolute scaled error (MASE) using our posterior predictive samples to assess the accuracy of our one-step forecast predictions. As usual, we exclude the last observation in our time series to use as our test point and then train the model on the rest of the data.
 
 \begin{figure}[H]

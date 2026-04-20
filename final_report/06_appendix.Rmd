@@ -16,16 +16,129 @@ The MA(3) Model only applies to stationary series. Since our original scaled med
 All associated code for this project are included in the working directory of the github repository. Each file either corresponds to specific model and approximation method or a type of exploratory analysis. 
 
 **Model Code**
+
 - `MCMC_blr`: MCMC Method for Bayesian Linear Regression
 - `MCMC_ma3`: MCMC Method for MA(3) Model
 - `SNIS_blr.Rmd`: SNIS Method for Bayesian Linear Regression Model
 - `VI_ma3.Rmd`: Variational Method for MA(3) Model
 
 **Exploratory Analysis**
+
 - `exploratory_analysis`: Predictor Analysis on GDP, Unemployment Rate, Time, Mortage Rate
 - `time_series_analysis`: Time Series Analysis: Stationarity and best ARIMA model based on AIC
 
-## STAN MCMC STAN Code and Associated R Code
+##STAN Code and Associated MCMC R Code
+
+### BLR Model
+
+- MA(3) BLR STAN Code
+
+```
+data {
+  int N;
+  vector[N] y;
+  vector[N] time;
+  vector[N] gdp; // GDP
+  vector[N] unempl_rate; //Enempoyment Rate
+  vector[N] mortgage_rate;//mortgage rate
+} 
+
+parameters {
+  real beta0;
+  real beta1;
+  real beta2;
+  real beta3;
+  real beta4;
+  real<lower=0> sigma;
+}
+
+model {
+  beta0 ~ normal(0, 10);
+  beta1 ~ normal(0, 10);
+  beta2 ~ normal(0, 10);
+  beta3 ~ normal(0, 10);
+  sigma ~ exponential(1);
+  
+  for (i in 1:N) {
+    real mu_i = beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i];
+    y[i] ~ normal(mu_i, sigma);
+  }
+}
+
+generated quantities {
+  vector[N] y_pred;
+
+  for (i in 1:N) {
+    y_pred[i] = normal_rng(
+      beta0 + beta1*time[i] + beta2*gdp[i] + beta3*unempl_rate[i] + beta4*mortgage_rate[i],
+      sigma);
+  }
+}
+```
+
+- MA(3) Model Sampling STAN Code
+
+```
+data {
+  int<lower=1> N;            
+  vector[N] y;    
+}
+
+parameters {
+  real mu;                   
+  vector<lower=-1, upper=1>[3] theta;                
+  real<lower=0> sigma;
+}
+
+transformed parameters {
+  vector[N] eps;
+  
+  // Initial Values
+  eps[1] = y[1] - mu;
+  eps[2] = y[2] - mu - theta[1] * eps[1]; 
+  eps[3] = y[3] - mu - theta[1] * eps[2] - theta[2] * eps[1];
+  
+  // Estimated Errors
+  for (t in 4:N) {
+    eps[t] = (y[t] - mu - theta[1]*eps[t-1] 
+                        - theta[2]*eps[t-2] 
+                        - theta[3]*eps[t-3]);
+  }
+}
+
+model {
+  // Posterior Distribution
+  mu ~ normal(0, 1);     
+  theta ~ normal(0, 0.5);
+  sigma ~ cauchy(0, 1);
+  
+  // Likelihood
+  y[4:N] ~ normal(mu + theta[1]*eps[3:(N - 1)]
+                     + theta[2]*eps[2:(N - 2)]
+                     + theta[3]*eps[1:(N - 3)],
+                  sigma);
+}
+
+generated quantities {
+  // Posterior Predictive Samples
+  array[N] real y_post_pred;
+  
+  // Initial
+  y_post_pred[1] = normal_rng(mu, sigma);
+  y_post_pred[2] = normal_rng(mu + theta[1]*eps[1], sigma);
+  y_post_pred[3] = normal_rng(mu + theta[1]*eps[2] + theta[2]*eps[3], sigma);
+  y_post_pred[4:N] = normal_rng(mu + theta[1]*eps[3:(N - 1)]
+                                   + theta[2]*eps[2:(N - 2)]
+                                   + theta[3]*eps[1:(N - 3)], 
+                                   sigma);
+}
+```
+### MA(3) Model
+**MA(3) MCMC Predictions**
+
+
+
+
 
 
 

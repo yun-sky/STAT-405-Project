@@ -6,17 +6,17 @@ header-includes:
 output: pdf_document
 ---
 
-#### MCMC Sampling Results \newline
+### MCMC Sampling Results \newline
 It was quite difficult to sample from this MCMC chain due to the non-identifiability of the MA model. Putting more restrictive priors on the parameters helped minimize divergences. We iterated 10000 MCMC samples with 2500 warm-up iterations to sufficiently burn-in the MCMC chain. The clean summary is provided below. 
 
 ```{r echo=FALSE}
-knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE))
+knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE), caption="Posterior Summary for MCMC MA(3) Model")
 ```
 
-It appears that posterior means of the parameters are close to the results given by `auto.arima`. 
+It appears that posterior means of the parameters is somewhat consistent to the results given found in the itme series analysis. The largest coefficient $\theta_3$ seems to indicate that the $e_{t-3}$ is generally a strong predictor for the $Y_t$ and all $\theta$'s show similar credible interval widths. However, there is more uncertainty involved when estimating the $\theta$ coefficients compared to $\mu$ and $\sigma$, as suggested by the narrow credible intervals. 
 
-#### MCMCM Diagnostics: Posterior Predictive Checks and Trace Plots\
-In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that the nominal coverage (81.33%) of leave-one-out 80% credible intervals is sufficiently close to the actual coverage, suggesting that the model is fitting to the data well. Additionally, the trace-plots for for $\sigma$, $\mu$ and $\theta_1$ fluctuates rapidly around the posterior means which indicates that there is fast-mixing between chains. Trace plots for $\theta_1$ and $\theta_2$ can be observed in the appendix. Same results were shown through repeated trials. 
+### MCMCM Diagnostics: Posterior Predictive Checks and Trace Plots
+In figure, posterior predictive checks show that the nominal coverage (81.33%) of leave-one-out 80% credible intervals is sufficiently close to the actual coverage, suggesting that the model is fitting to the data well. Additionally, the trace-plots for for $\sigma$, $\mu$ and $\theta_1$ fluctuates rapidly around the posterior means which indicates that there is fast-mixing between chains. Trace plots for $\theta_1$ and $\theta_2$ can be observed in the appendix. Same results were shown through repeated trials. 
 
 \begin{figure}[H]
     \centering
@@ -28,7 +28,7 @@ In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that 
     \label{fig-blr-mcmc-diagnostics}
 \end{figure}
 
-#### One-Step Forecast Assessment \newline
+### One-Step Forecast Assessment
 
 Just like before, we leave the last value out and train the model on the rest of the data and randomly sample from the posterior predictive distribution for the 1-step forecast, resulting in the following sample distribution and prediction summaries. 
 

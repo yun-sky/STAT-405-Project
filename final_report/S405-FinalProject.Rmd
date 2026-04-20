@@ -26,7 +26,7 @@ The response dataset is the "Quarterly Median U.S. House Prices" dataset, and th
 
 Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data. After merging the two data sets together, we checked for missing values and found no missing observations. Since we are doing a Bayesian analysis, it is hard to explore the posterior regions efficiently enough due to large scales. This analysis uses scaled values to make it easier to put priors on our model parameters.
 
-```{r, echo=FALSE}
+```{r echo=FALSE, warning=FALSE}
 source("../source/data_sources_and_dependencies.R")
 knitr::kable(head(dataset), caption = "US Median Housing Prices")
 ```
@@ -437,12 +437,7 @@ mase_vi
 The sample distribution is roughly normal, with the test point being very close to the posterior predictive mean. This suggests that the samples well approximate the one-step forecasts. Our VI MASE value of 0.80 is very close to our MCMC method, indicating that the two methods provide nearly identical accuracy.
 
 ## Time-Series MCMC VS. VI
-```{r, echo=FALSE}
-knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE), caption = "MA(3) MCMC Posterior Summary Table")
-
-knitr::kable(vi_summary, caption = "MA(3) VI Posterior Summary Table")
-```
-Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
+Refer to Table 8 and Table 8. Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
 
 For forecasting performance, the two methods are essentially equivalent, with MCMC MASE value of 0.8104 and VI MASE value of 0.8010. This suggests that VI is a great approximation method, as it is much faster than the MCMC method, with minimal loss in predictive accuracy.
 
