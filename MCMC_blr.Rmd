@@ -33,6 +33,7 @@ train_data=list(
 )
 
 blr_mod <- cmdstan_model("source/bayesian_regression.stan")
+
 blr_fit <- blr_mod$sample(
   chains=2,
   seed=seed,

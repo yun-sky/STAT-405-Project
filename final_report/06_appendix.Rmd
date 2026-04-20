@@ -9,16 +9,36 @@ header-includes:
 
 Looking at the scatter plot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
 
+```{r}
+source("../source/data_sources_and_dependencies.R")
+ggplot(dataset, aes(x = DATE, y = MSPUS)) +
+  geom_point() +
+  labs(x = "Date", y = "Median US housing price") +
+  ggtitle("Quarterly Median US Housing Price")
+
+
+numeric_data <- dataset[, sapply(dataset, is.numeric)]
+cor_matrix <- cor(numeric_data)
+corrplot(cor_matrix,
+         method = "color",
+         type = "upper",
+         addCoef.col = "black",
+         tl.col = "black",
+         tl.srt = 45)
+```
+
+
 ## Stationarity and Reasoning Behind MA(3) Models
-The MA(3) Model only applies to stationary series. Since our original scaled median house price time series shows a long-term increasing trend, differencing the series by the 1-lagged value can help make the series approximately stationary in order to fit $MA(3)$ model. We then undifference the predictions by adding the previous lagged-value to the forecast values. 
+The MA(3) Model only applies to stationary series. Since our original scaled median house price time series shows a long-term increasing trend, differencing the series by the 1-lagged value can help make the series approximately stationary in order to fit an appropriate $MA(q)$ model.
+When we want to forecast for our original series, we then undifference the predictions given the MA(3) model by adding the previous lagged-value to the predictions.  
 
 ## Model Code
 All associated code for this project are included in the working directory of the github repository. Each file either corresponds to specific model and approximation method or a type of exploratory analysis. 
 
 **Model Code**
 
-- `MCMC_blr`: MCMC Method for Bayesian Linear Regression
-- `MCMC_ma3`: MCMC Method for MA(3) Model
+- `MCMC_blr.Rmd`: MCMC Method for Bayesian Linear Regression
+- `MCMC_ma3.Rmd`: MCMC Method for MA(3) Model
 - `SNIS_blr.Rmd`: SNIS Method for Bayesian Linear Regression Model
 - `VI_ma3.Rmd`: Variational Method for MA(3) Model
 
@@ -27,12 +47,11 @@ All associated code for this project are included in the working directory of th
 - `exploratory_analysis`: Predictor Analysis on GDP, Unemployment Rate, Time, Mortage Rate
 - `time_series_analysis`: Time Series Analysis: Stationarity and best ARIMA model based on AIC
 
-##STAN Code and Associated MCMC R Code
+## STAN Code and Associated for MCMC and VI
 
-### BLR Model
+### BLR Model MCMC
 
-- MA(3) BLR STAN Code
-
+- BLR STAN Code for Sampling
 ```
 data {
   int N;
@@ -75,8 +94,41 @@ generated quantities {
   }
 }
 ```
+- Associated R Code for MCMC Sampling of BLR Model in `MCMC_blr.Rmd`
+```{r eval=FALSE, echo=TRUE}
+source("source/data_sources_and_dependencies.R")
 
-- MA(3) Model Sampling STAN Code
+# Global Variables
+n_samples = 10000
+y_scaled = data_scaled$MSPUS
+seed=2026
+
+train_data=list(
+  N = length(y_scaled),
+  y = y_scaled,
+  time = data_scaled$time_index,
+  gdp = data_scaled$GDP,
+  unempl_rate = data_scaled$unemployment_rate,
+  mortgage_rate = data_scaled$mortgage_rate
+)
+
+blr_mod <- cmdstan_model("source/bayesian_regression.stan")
+
+blr_fit <- blr_mod$sample(
+  chains=2,
+  seed=seed,
+  refresh=n_samples,
+  iter_warmup=1000,
+  iter_sampling=n_samples,
+  data=train_data
+)
+```
+
+
+
+### MCMC MA(3) Model
+
+- MA(3) Model STAN Code for Sampling
 
 ```
 data {
@@ -133,13 +185,27 @@ generated quantities {
                                    sigma);
 }
 ```
-### MA(3) Model
-**MA(3) MCMC Predictions**
 
+- Associated R Code for MCMC Sampling of MA(3) Model in `MCMC_ma3.Rmd`
 
+```{r eval=FALSE, echo=TRUE}
+source("source/data_sources_and_dependencies.R")
 
+n_samples = 10000
+train_data=list(
+  N = length(diff_y_scaled),
+  y = diff_y_scaled
+)
 
+ma3_mod <- cmdstan_model("source/ma3.stan");
 
-
-
-
+ma3_fit <- ma3_mod$sample(
+  seed=2026,
+  chains=2, 
+  refresh=n_samples,
+  iter_warmup=2500, # Ensures that chain is sufficiently burned-in
+  iter_sampling=n_samples,
+  data=train_data, 
+  show_exceptions=FALSE
+)
+```
