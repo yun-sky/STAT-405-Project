@@ -5,8 +5,22 @@ header-includes:
   - \usepackage{}
 ---
 
-## **Exploratory Analysis**
+## Exploratory Analysis
+
+Looking at the scatter plot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
+
+## Stationarity and Reasoning Behind MA(3) Models
+
+
+## Model Code
+
+
+## STAN MCMC STAN Code and Associated R Code
+```{stan results='hide'}
+
+```
 
 
 
-Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
+
+
