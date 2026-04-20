@@ -1,7 +1,39 @@
 ---
 title: "02_blr_mcmc"
 author: "Sky Yun"
+header-includes:
+  - \usepackage{float}
 output: pdf_document
 ---
 
 
+#### MCMC Sampling Results \newline
+
+
+#### MCMC Diagnostics: Posterior Predictive Checks and Trace Plots \newline
+
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{cc}
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/02_blr_mcmc_pp_density.png} &
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/02_blr_mcmc_trace_pt1.png} 
+    \end{tabular}
+    \caption{Posterior Predictive Checks and MCMC Mixing Diagnostics}
+    \label{fig-ma3-mcmc-diagnostics}
+\end{figure}
+
+#### One-Step Forecast Assessment \newline
+We will compute mean absolute scaled error (MASE) using our posterior predictive samples to assess the accuracy of our one-step forecast predictions. As usual, we exclude the last observation in our time series to use as our test point and then train the model on the rest of the data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../figs/imgs/02_blr_mcmc_pred_plot.png}
+    \caption{Posterior Predictive Sample vs Test Point}
+    \label{fig-blr-pred}
+\end{figure}
+
+```{r echo=FALSE}
+knitr::kable(read.csv("../figs/tables/02_blr_mcmc_pred_summary.csv", header=TRUE), 
+             caption="Prediction Summary", label="table-blr-pred-summary")
+```
+We can see from the plot above that the observed test point is somewhat far from the median, with a MASE value of $1.541$. However, this is not unexpected as we have already seen before the model struggles to capture abrupt changes in trends near the end of the series. This may suggest that simple BLR might not be the most suitable model for obtaining accurate forecast, which leads leads us to the next model. 

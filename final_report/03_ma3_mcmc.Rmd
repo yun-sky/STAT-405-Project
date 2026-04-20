@@ -7,11 +7,14 @@ output: pdf_document
 ---
 
 #### MCMC Sampling Results \newline
-It was quite difficult to sample from this MCMC chain due to the non-identifiability of the MA model. Putting more restrictive priors on the parameters helped minimize divergences. We iterated 10000 MCMC samples with 2500 warm-up iterations to sufficiently burn-in the MCMC chain. The claned summary is provided below. 
+It was quite difficult to sample from this MCMC chain due to the non-identifiability of the MA model. Putting more restrictive priors on the parameters helped minimize divergences. We iterated 10000 MCMC samples with 2500 warm-up iterations to sufficiently burn-in the MCMC chain. The clean summary is provided below. 
 
 ```{r echo=FALSE}
-read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE)
+knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE))
 ```
+
+It appears that posterior means of the parameters are close to the results given by `auto.arima`. 
+
 #### MCMCM Diagnostics: Posterior Predictive Checks and Trace Plots\
 In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that the nominal coverage (81.33%) of leave-one-out 80% credible intervals is sufficiently close to the actual coverage, suggesting that the model is fitting to the data well. Additionally, the trace-plots for for $\sigma$, $\mu$ and $\theta_1$ fluctuates rapidly around the posterior means which indicates that there is fast-mixing between chains. Trace plots for $\theta_1$ and $\theta_2$ can be observed in the appendix. Same results were shown through repeated trials. 
 
@@ -25,7 +28,7 @@ In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that 
     \label{fig-ma3-mcmc-diagnostics}
 \end{figure}
 
-#### One-Step Forecast \newline
+#### One-Step Forecast Assessment \newline
 
 Just like before, we leave the last value out and train the model on the rest of the data and randomly sample from the posterior predictive distribution for the 1-step forecast, resulting in the following sample distribution and prediction summaries. 
 
@@ -37,10 +40,11 @@ Just like before, we leave the last value out and train the model on the rest of
 \end{figure}
 
 ```{r pred-summary, echo=FALSE}
-read.csv("../figs/tables/03_ma3_mcmc_pred_summary.csv", header=TRUE)
+knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_pred_summary.csv", header=TRUE),
+             caption="Prediction Summary")
 ```
 
-The sample distribution is approximately normal as expected and we can observe that the test point is quite close to the posterior predictive median, suggesting that the samples are approximating the one-step forecast well. From figure \ref{fig-ma3-pred}. We can observe from the summaries that the MASE of $0.8104$ is much lower compared to the bayesian linear regression case with a MASE of $1.34$. 
+The sample distribution is approximately normal as expected and we can observe that the test point is quite close to the posterior predictive median, suggesting that the samples are approximating the one-step forecast well. From figure \ref{fig-ma3-pred}. We can observe from the summaries that the MASE of $0.8104$ is much lower compared to the Bayesian linear regression case with a MASE of $1.541$.
 
 
 
