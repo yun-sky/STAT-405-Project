@@ -17,12 +17,9 @@ suppressPackageStartupMessages(library(ggplot2))
 
 Our team worked with two U.S. housing-related datasets to study how well bayesian methods can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model with a time-series model, to determine which model better predicts quarterly median U.S. house prices.
 
-The main response dataset is the "Quarterly Median U.S. House Prices" dataset, where the response variable is:
+The response dataset is the "Quarterly Median U.S. House Prices" dataset, and the explanatory dataset is the "Economic Predictors for House Prices" dataset, which consists monthly economic and housing-related factors. Based on our proposal, we decided to include the following variables:
 
--   `MSPUS`: the quarterly median sales price of houses sold in the United States.
-
-The explanatory dataset is the "Economic Predictors for House Prices" dataset, which consists monthly economic and housing-related factors. Based on our proposal, we decided to include the following variables:
-
+-   `MSPUS` (Response variable): the quarterly median sales price of houses sold in the United States.
 -   `GDP`: how the US economy impacts housing prices.
 -   `mortgage_rate`: Percentage interest charged on a home loan.
 -   `unemployment_rate`: Percentage of those unemployed in the US economy.
@@ -31,9 +28,11 @@ Since the response variable is recorded quarterly while the economic predictors 
 
 After merging the two data sets together, we checked for missing values and found no missing observations.
 
-```{r}
+Since we are doing a Bayesian analysis, it is hard to explore the posterior regions efficiently enough due to large scales. This analysis uses scaled values to make it easier to put priors on our model parameters.
+
+```{r, echo=FALSE}
 source("../source/data_sources_and_dependencies.R")
-head(dataset)
+knitr::kable(head(dataset), caption = "US Median Housing Prices")
 ```
 
 ## **Literature Review**
@@ -219,8 +218,6 @@ posterior$ess
 #posterior means
 posterior_mean <- colSums(posterior$draws * posterior$weights)
 posterior_mean
-
-
 #resample approximate posterior draws
 n_post <- 5000
 
@@ -250,8 +247,10 @@ posterior_summary <- data.frame(
   q95 = apply(posterior_draws, 2, quantile, probs = 0.95)
 )
 
-posterior_summary |>
+post_sum <- posterior_summary |>
   select(-q05, -q50, -q95)
+
+knitr::kable(post_sum, caption = "OLS SNIS Posterior Summary Table")
 ```
 
 ```{r, include=FALSE}
@@ -295,8 +294,7 @@ ppc_summary <- data.frame(
     mean(apply(y_rep, 2, sd) >= sd(y))
   )
 )
-
-ppc_summary
+knitr::kable(ppc_summary, caption = "OLS SNIS Posterior Predictive Checks")
 ```
 
 We fitted a Bayesian linear regression model to standardized house prices (MSPUS) using time_index, GDP, unemployment_rate, and mortgage_rate as predictors. Posterior inference was conducted using self-normalized importance sampling (SNIS).
@@ -383,14 +381,14 @@ vi_summary <- posterior::as_draws_df(ma3_vi$draws()) %>%
 ```
 
 ```{r, echo = FALSE}
-print(vi_summary)
+knitr::kable(vi_summary, caption = "MA(3) VI Posterior Summary Table")
 ```
 
 The intercept $\mu$ (mean = 0.0569, 90% CI: 0.020–0.093) captures a small upward drift in quarterly US house price changes. The entire credible interval above zero states that this trend is not just white noise.
 
 $\theta_3$ from the model has the largest positive mean value (mean = 0.322, 90% CI: 0.144–0.487), which indicates that shocks from three quarters ago pushes quarterly house price in the same direction. $\theta_2$ shows a weaker effect at 0.175, while $\theta_1$ suggests negative effect with a value of -0.150. The noise term $\sigma$ (mean = 0.150, 90% CI: 0.131–0.172) is not too large, indicating the model is fairly stable.
 
-```{r, echo = FALSE, fig.show='hold', out.width='70%'}
+```{r, echo = FALSE, fig.show='hold', out.width='60%'}
 vi_draws <- ma3_vi$draws(variables = params_of_interest, format = "draws_matrix")
 
 mcmc_dens(vi_draws) +
@@ -399,6 +397,68 @@ mcmc_dens(vi_draws) +
 
 The above plot shows that all VI posterior densities follow normal distributions and are fairly concentrated. The posterior mean parameter $\mu$ is slightly positive, $\theta_2$ and $\theta_3$ are positive, $\theta_1$ is negative, and $\sigma$ centers near 0.15.
 
+### One-Step Forecast
+Similar to before, we randomly sample from the posterior distribution for the one-step forecast using VI method. Below are sample distribution and prediction summaries.
 
-### Time-Series VI VS. MCMC
+```{r, include = FALSE}
+source("../scripts/one_step_prediction_functions.R")
+ma3_mod_cv <- cmdstan_model("../source/ma3_cross_val.stan")
 
+N <- length(diff_y_scaled)
+
+train_data_pred <- list(
+  N      = N - 1,
+  y      = diff_y_scaled[-N],
+  t_pred = N - 1        
+)
+
+ma3_vi_pred <- ma3_mod_cv$variational(
+  data        = train_data_pred,
+  seed        = 405,
+  algorithm   = "meanfield",
+  iter        = 50000,
+  tol_rel_obj = 0.001,
+  draws       = 10000
+)
+
+y_pred_samples <- as.vector(
+  ma3_vi_pred$draws(variables = "y_pred", format = "matrix")
+)
+
+test_point <- diff_y_scaled[N]
+
+pred_summary <- data.frame(
+  mean   = mean(y_pred_samples),
+  median = median(y_pred_samples),
+  sd     = sd(y_pred_samples),
+  q5     = quantile(y_pred_samples, 0.05),
+  q95    = quantile(y_pred_samples, 0.95),
+  actual = test_point
+)
+print(pred_summary)
+```
+
+```{r, echo=FALSE, fig.show='hold', out.width='50%'}
+plot_one_step_forecast_density(
+  data.frame(y_pred = y_pred_samples), 
+  test_point
+)
+
+mase_vi <- compute_mase(
+  data.frame(y_pred = y_pred_samples), 
+  test_point
+)
+mase_vi
+```
+
+The sample distribution is roughly normal, with the test point being very close to the posterior predictive mean. This suggests that the samples well approximate the one-step forecasts. Our VI MASE value of 0.80 is very close to our MCMC method, indicating that the two methods provide nearly identical accuracy.
+
+### Time-Series MCMC VS. VI
+```{r, echo=FALSE}
+knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE), caption = "MA(3) MCMC Posterior Summary Table")
+
+knitr::kable(vi_summary, caption = "MA(3) VI Posterior Summary Table")
+```
+Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
+
+For forecasting performance, the two methods are essentially equivalent, with MCMC MASE value of 0.8104 and VI MASE value of 0.8010. This suggests that VI is a great approximation method, as it is much faster than the MCMC method, with minimal loss in predictive accuracy.
