@@ -421,7 +421,7 @@ pred_summary <- data.frame(
 print(pred_summary)
 ```
 
-```{r, echo=FALSE, fig.show='hold', out.width='50%'}
+```{r, echo=FALSE, fig.show='hold', out.width='45%'}
 plot_one_step_forecast_density(
   data.frame(y_pred = y_pred_samples), 
   test_point
@@ -437,9 +437,9 @@ mase_vi
 The sample distribution is roughly normal, with the test point being very close to the posterior predictive mean. This suggests that the samples well approximate the one-step forecasts. Our VI MASE value of 0.80 is very close to our MCMC method, indicating that the two methods provide nearly identical accuracy.
 
 ## Time-Series MCMC VS. VI
-Refer to Table 8 and Table 8. Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
+Refer to Table 6 and Table 8. Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
 
-For forecasting performance, the two methods are essentially equivalent, with MCMC MASE value of 0.8104 and VI MASE value of 0.8010. This suggests that VI is a great approximation method, as it is much faster than the MCMC method, with minimal loss in predictive accuracy.
+For forecasting performance, the two methods are essentially equivalent, with MCMC MASE value of 0.8104 and VI MASE value of 0.8010. This suggests that VI is a great approximation method, as it has minimal loss in predictive accuracy, and is much faster than the MCMC method.
 
 ```{r child="05_conclusion.Rmd"}
 
