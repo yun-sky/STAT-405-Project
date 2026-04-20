@@ -8,7 +8,7 @@ output: pdf_document
 
 
 #### MCMC Sampling Results \newline
-
+We ran the MCMC sampler for 10000 iterations with 2500 warm-up iterations to ensure the samples are not biased by initial 
 
 #### MCMC Diagnostics: Posterior Predictive Checks and Trace Plots \newline
 
@@ -37,3 +37,5 @@ knitr::kable(read.csv("../figs/tables/02_blr_mcmc_pred_summary.csv", header=TRUE
              caption="Prediction Summary", label="table-blr-pred-summary")
 ```
 We can see from the plot above that the observed test point is somewhat far from the median, with a MASE value of $1.541$. However, this is not unexpected as we have already seen before the model struggles to capture abrupt changes in trends near the end of the series. This may suggest that simple BLR might not be the most suitable model for obtaining accurate forecast, which leads leads us to the next model. 
+
+
