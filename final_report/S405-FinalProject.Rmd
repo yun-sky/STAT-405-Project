@@ -246,7 +246,7 @@ posterior_summary <- data.frame(
 post_sum <- posterior_summary |>
   select(-q05, -q50, -q95)
 
-knitr::kable(post_sum, caption = "OLS SNIS Posterior Summary Table")
+knitr::kable(post_sum, caption = "BLR SNIS Posterior Summary Table")
 ```
 
 ```{r, include=FALSE}
@@ -290,7 +290,7 @@ ppc_summary <- data.frame(
     mean(apply(y_rep, 2, sd) >= sd(y))
   )
 )
-knitr::kable(ppc_summary, caption = "OLS SNIS Posterior Predictive Checks")
+knitr::kable(ppc_summary, caption = "BLR SNIS Posterior Predictive Checks")
 ```
 
 We fitted a Bayesian linear regression model to standardized house prices (MSPUS) using time_index, GDP, unemployment_rate, and mortgage_rate as predictors. Posterior inference was conducted using self-normalized importance sampling (SNIS).
@@ -309,7 +309,7 @@ Overall, this model provides a good Bayesian baseline for the house-price data. 
 ```
 
 
-### OLS SNIS VS. MCMC
+### BLR SNIS VS. MCMC
 
 We compared SNIS and MCMC for the same baseline Bayesian linear regression model. The two methods produced very similar posterior results. The posterior means for SNIS and MCMC were 0.0003 and -0.0003 for the intercept, -0.0419 and -0.0660 for time_index, 1.0866 and 1.11 for GDP, -0.0295 and -0.0233 for unemployment_rate, 0.1681 and 0.170 for mortgage_rate, 0.2715 and 0.271 for sigma. In both methods, GDP was the strongest positive predictor.
 
