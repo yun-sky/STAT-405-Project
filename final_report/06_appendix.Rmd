@@ -10,16 +10,22 @@ header-includes:
 Looking at the scatter plot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
 
 ## Stationarity and Reasoning Behind MA(3) Models
-
+The MA(3) Model only applies to stationary series. Since our original scaled median house price time series shows a long-term increasing trend, differencing the series by the 1-lagged value can help make the series approximately stationary in order to fit $MA(3)$ model. We then undifference the predictions by adding the previous lagged-value to the forecast values. 
 
 ## Model Code
+All associated code for this project are included in the working directory of the github repository. Each file either corresponds to specific model and approximation method or a type of exploratory analysis. 
 
+**Model Code**
+- `MCMC_blr`: MCMC Method for Bayesian Linear Regression
+- `MCMC_ma3`: MCMC Method for MA(3) Model
+- `SNIS_blr.Rmd`: SNIS Method for Bayesian Linear Regression Model
+- `VI_ma3.Rmd`: Variational Method for MA(3) Model
+
+**Exploratory Analysis**
+- `exploratory_analysis`: Predictor Analysis on GDP, Unemployment Rate, Time, Mortage Rate
+- `time_series_analysis`: Time Series Analysis: Stationarity and best ARIMA model based on AIC
 
 ## STAN MCMC STAN Code and Associated R Code
-```{stan results='hide'}
-
-```
-
 
 
 

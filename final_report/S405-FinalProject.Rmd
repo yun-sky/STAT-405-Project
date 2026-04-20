@@ -24,11 +24,7 @@ The response dataset is the "Quarterly Median U.S. House Prices" dataset, and th
 -   `mortgage_rate`: Percentage interest charged on a home loan.
 -   `unemployment_rate`: Percentage of those unemployed in the US economy.
 
-Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data.
-
-After merging the two data sets together, we checked for missing values and found no missing observations.
-
-Since we are doing a Bayesian analysis, it is hard to explore the posterior regions efficiently enough due to large scales. This analysis uses scaled values to make it easier to put priors on our model parameters.
+Since the response variable is recorded quarterly while the economic predictors are recorded monthly, the monthly predictor data must be aggregated to the quarterly level before merging with the quarterly housing price data. After merging the two data sets together, we checked for missing values and found no missing observations. Since we are doing a Bayesian analysis, it is hard to explore the posterior regions efficiently enough due to large scales. This analysis uses scaled values to make it easier to put priors on our model parameters.
 
 ```{r, echo=FALSE}
 source("../source/data_sources_and_dependencies.R")
@@ -67,9 +63,7 @@ $$
 
 ### Simple Linear Regression Model with SNIS
 
-After initializing and running the SNIS algorithm with re-sampling, we came to the following outputs.
-
-The calculated ESS and posterior mean for each parameter are:
+After initializing and running the SNIS algorithm with re-sampling, we came to the following outputs. The calculated ESS and posterior mean for each parameter are:
 ```{r, echo = FALSE}
 #setup
 set.seed(405)
@@ -307,9 +301,7 @@ We compared SNIS and MCMC for the same baseline Bayesian linear regression model
 
 The posterior uncertainty estimates were also close. For example, the posterior standard deviation of GDP was about 0.298 under SNIS and 0.313 under MCMC, while the posterior standard deviation of sigma was about 0.0224 under SNIS and 0.0226 under MCMC. This suggests that SNIS approximated both the center and spread of the posterior well.
 
-The predictive results were very similar. For the first observation, SNIS gave a predictive mean of about -1.635, while MCMC gave a predictive mean of about -1.640. Both methods also produced fitted values that followed the overall upward trend in house prices.
-
-Overall, both methods performed well and pretty similar.
+The predictive results were very similar. For the first observation, SNIS gave a predictive mean of about -1.635, while MCMC gave a predictive mean of about -1.640. Both methods also produced fitted values that followed the overall upward trend in house prices. Overall, both methods performed well and pretty similar.
 
 
 # **Time-Series MA(3)**
@@ -453,3 +445,13 @@ knitr::kable(vi_summary, caption = "MA(3) VI Posterior Summary Table")
 Comparing the two posterior summary tables for the MA(3) model, the parameters estimates for the two methods are almost identical. Both methods indicate a negative first lag effect, and positive second and third lag effects, with $\theta_3$ being the largest. 
 
 For forecasting performance, the two methods are essentially equivalent, with MCMC MASE value of 0.8104 and VI MASE value of 0.8010. This suggests that VI is a great approximation method, as it is much faster than the MCMC method, with minimal loss in predictive accuracy.
+
+```{r child="05_conclusion.Rmd"}
+
+```
+
+# Appendix
+```{r child="06_appendix.Rmd"}
+
+```
+
