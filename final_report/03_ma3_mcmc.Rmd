@@ -25,7 +25,7 @@ In figure \ref{fig-ma3-mcmc-diagnostics}, posterior predictive checks show that 
     \includegraphics[width=0.5\textwidth]{../figs/imgs/03_ma3_mcmc_trace_pt1.png} 
     \end{tabular}
     \caption{Posterior Predictive Checks and MCMC Mixing Diagnostics}
-    \label{fig-ma3-mcmc-diagnostics}
+    \label{fig-blr-mcmc-diagnostics}
 \end{figure}
 
 #### One-Step Forecast Assessment \newline
