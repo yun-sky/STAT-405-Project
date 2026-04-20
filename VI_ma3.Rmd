@@ -95,6 +95,12 @@ pred_summary <- data.frame(
 )
 print(pred_summary)
 
+
+plot_one_step_forecast_density(
+  data.frame(y_pred = y_pred_samples), 
+  test_point
+)
+
 mase_vi <- compute_mase(
   data.frame(y_pred = y_pred_samples), 
   test_point
