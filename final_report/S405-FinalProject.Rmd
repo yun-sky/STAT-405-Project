@@ -13,7 +13,7 @@ suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(ggplot2))
 ```
 
-## **Introduction**
+# **Introduction**
 
 Our team worked with two U.S. housing-related datasets to study how well bayesian methods can predict housing prices in the US. The main goal of this project is to compare a Bayesian linear regression model with a time-series model, to determine which model better predicts quarterly median U.S. house prices.
 
@@ -35,21 +35,13 @@ source("../source/data_sources_and_dependencies.R")
 knitr::kable(head(dataset), caption = "US Median Housing Prices")
 ```
 
-## **Literature Review**
+# **Literature Review**
 
 Previous study on the Median US Housing Price written by Yuxiao Chen argued that during the federal reserve’s continuous interest rate increases in 2022-2023, the US house prices were expected to drop, but not fall sharply. The results showed that US house prices were still increasing, but at a lower rate. First, mortgage rates don't depend solely on interest rates, it is influenced more by inflation expectations and US federal demand for US bonds. Also, housing prices are sticky, so they may take years to adjust to market changes. 
 
 This previous study focuses on economic argument with literature discussion, while our analysis is much more statistical and Bayesian. We build Bayesian models to predict and explain median US housing prices using macroeconomic factors, like GDP, unemployment rate, and mortgage rate. The study done by Yuxiao Chen relies more on economic reasoning and historical discussions. 
 
-## **Exploratory Analysis**
-
-
-
-**Insert figures**
-
-Looking at the scatterplot, there seem to be a strong upward trend in date and GDP, Indicating that there is a positive correlation between GDP and date. From the correlation matrix, we see that GDP and Median US housing price has strong positive correlation value of 0.95. Both mortgage rate and unemployment rate are negatively correlated with Median US housing price.
-
-## **Simple Linear Regression Model**
+# **Simple Linear Regression Model**
 
 Our naive model:
 
@@ -303,13 +295,13 @@ Posterior predictive checks indicate that the model fits the data reasonably wel
 
 Overall, this model provides a good Bayesian baseline for the house-price data. It yields stable posterior inference, identifies GDP as the main predictor, and captures the main pattern in the data.
 
-### Simple Linear Regression Model with MCMC
+## Simple Linear Regression Model with MCMC
 
 ```{r child="02_blr_mcmc.Rmd"}
 ```
 
 
-### BLR SNIS VS. MCMC
+## BLR SNIS VS. MCMC
 
 We compared SNIS and MCMC for the same baseline Bayesian linear regression model. The two methods produced very similar posterior results. The posterior means for SNIS and MCMC were 0.0003 and -0.0003 for the intercept, -0.0419 and -0.0660 for time_index, 1.0866 and 1.11 for GDP, -0.0295 and -0.0233 for unemployment_rate, 0.1681 and 0.170 for mortgage_rate, 0.2715 and 0.271 for sigma. In both methods, GDP was the strongest positive predictor.
 
@@ -320,16 +312,28 @@ The predictive results were very similar. For the first observation, SNIS gave a
 Overall, both methods performed well and pretty similar.
 
 
-## **Time-Series MA(3)**
+# **Time-Series MA(3)**
 
-Our second model is a time-series model that only depends on past-lagged values, capturing the dynamic structure of the data, including trends, seasonality, and time dependence. To find the best-fit model based on AIC, we ran `auto.arima()` and it suggested the moving Average model with three lagged forecast error terms (MA(3)) to be the best. We performed first-order differencing of the scaled median housing price to align with the stationary assumptions of moving-average models. From this analysis, we formulated a bayesian MA(3) model with the following associated priors and likelihood:
+Our second model is a time-series model that only depends on past-lagged values, capturing the dynamic structure of the data, including trends, seasonality, and time dependence. To find the best-fit model based on AIC, we ran `auto.arima()` and it suggested the moving Average model with three lagged forecast error terms (MA(3)) to be the best. We performed first-order differencing of the scaled median housing price to align with the stationary assumptions of moving-average models.
 
-### MA(3) with MCMC
+Assume that $N$ is the size of the observed data $y$. We define the following Bayesian MA(3) model, where the right side describes our transformed parameters and likelihood distribution and the left defines our priors. 
+
+\begin{align*}
+e_1 &= y_1 - \mu & \mu & \sim \mathrm{Normal}(0, 1)\\
+e_2 &= y_2 - (\mu + \theta_1 e_1) & \theta_k & \sim \mathrm{Normal}(0, 0.5) \;\;\; \text{for $t=1, 2, 3$} \\
+e_3 &= y_3 - (\mu + \theta_1 e_2 + \theta_2 e_1) & \sigma & \sim \mathrm{Cauchy(0, 1)}\\
+e_t &= y_t - (\mu + \theta_1 e_{t-1} + \theta_2 e_{t-2} + \theta_3 e_{t-3}) \\
+Y_t &| \sigma, \mu, e_{t-1}, e_{t-2}, e_{t-3} \sim \mathrm{Normal\left(\mu + \sum_{i = 1}^{3} \theta_i e_{t-i}, \sigma\right)} \;\;\; \text{for $t = 4, ..., N$}
+\end{align*}
+
+Priors (and associated hyper-parameters) were chosen to reflect the general range and scale of our parameters of interest. For example, $\sigma$ is only allowed to take positive, real numbers so exponential and half-normal distribution were used as priors initially but proved to be not informative enough for the MCMC  the converge reliably. Additionally, to ensure stationarity (refer to appendix for more information), $\theta$ values should be within the range $[-1, 1]$. So a normal distribution was chosen with a small standard deviation to reflect the symmetric bounds around 0.
+
+## MA(3) with MCMC
 
 ```{r child="03_ma3_mcmc.Rmd"}
 ```
 
-### MA(3) with Variational Inference
+## MA(3) with Variational Inference
 
 The following table produces the VI posterior summaries for the model parameters. Each parameter is presented with its mean, median, standard deviation, median absolute deviation, and the 5th and 95th posterior quantiles.
 
@@ -440,7 +444,7 @@ mase_vi
 
 The sample distribution is roughly normal, with the test point being very close to the posterior predictive mean. This suggests that the samples well approximate the one-step forecasts. Our VI MASE value of 0.80 is very close to our MCMC method, indicating that the two methods provide nearly identical accuracy.
 
-### Time-Series MCMC VS. VI
+## Time-Series MCMC VS. VI
 ```{r, echo=FALSE}
 knitr::kable(read.csv("../figs/tables/03_ma3_mcmc_clean_summary.csv", header=TRUE), caption = "MA(3) MCMC Posterior Summary Table")
 

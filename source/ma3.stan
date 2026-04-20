@@ -27,7 +27,7 @@ transformed parameters {
 
 model {
   // Posterior Distribution
-  mu ~ normal(0, 10);     
+  mu ~ normal(0, 1);     
   theta ~ normal(0, 0.5);
   sigma ~ cauchy(0, 1);
   
