@@ -4,3 +4,9 @@ output: pdf_document
 ---
 
 # Conclusion
+
+BLR uses several explanatory variables to explain US median house prices, while MA(3) uses the series' past error to determine temporal dependence. BLR is a regression model, and MA(3) is a time-series model. 
+
+These two models have very different structures. For BLR, we can determine the covariate that has the largest effect, which is GDP under both SNIS and MCMC. For MA(3), we find the lag that has the largest effect, which is  $\theta_3$.
+
+Looking at each model's forecasting performance, BLR's one-step-ahead MASE is about 1.54, and 0.81 with MCMC, 0.80 with VI for MA(3) model. Since lower MASE is better, we conclude that MA(3) performs better than BLR for forecasting.
