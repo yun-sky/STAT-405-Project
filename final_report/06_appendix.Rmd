@@ -101,7 +101,6 @@ source("source/data_sources_and_dependencies.R")
 # Global Variables
 n_samples = 10000
 y_scaled = data_scaled$MSPUS
-seed=2026
 
 train_data=list(
   N = length(y_scaled),
@@ -116,15 +115,13 @@ blr_mod <- cmdstan_model("source/bayesian_regression.stan")
 
 blr_fit <- blr_mod$sample(
   chains=2,
-  seed=seed,
+  seed=2026,
   refresh=n_samples,
   iter_warmup=1000,
   iter_sampling=n_samples,
   data=train_data
 )
 ```
-
-
 
 ### MCMC MA(3) Model
 
@@ -190,6 +187,7 @@ generated quantities {
 
 ```{r eval=FALSE, echo=TRUE}
 source("source/data_sources_and_dependencies.R")
+diff_y_scaled = diff(data_scaled$MSPUS)
 
 n_samples = 10000
 train_data=list(
