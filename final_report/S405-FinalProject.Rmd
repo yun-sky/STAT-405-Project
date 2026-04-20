@@ -388,15 +388,6 @@ The intercept $\mu$ (mean = 0.0569, 90% CI: 0.020–0.093) captures a small upwa
 
 $\theta_3$ from the model has the largest positive mean value (mean = 0.322, 90% CI: 0.144–0.487), which indicates that shocks from three quarters ago pushes quarterly house price in the same direction. $\theta_2$ shows a weaker effect at 0.175, while $\theta_1$ suggests negative effect with a value of -0.150. The noise term $\sigma$ (mean = 0.150, 90% CI: 0.131–0.172) is not too large, indicating the model is fairly stable.
 
-```{r, echo = FALSE, fig.show='hold', out.width='60%'}
-vi_draws <- ma3_vi$draws(variables = params_of_interest, format = "draws_matrix")
-
-mcmc_dens(vi_draws) +
-  labs(title = "VI Posterior Approximation - MA(3)")
-```
-
-The above plot shows that all VI posterior densities follow normal distributions and are fairly concentrated. The posterior mean parameter $\mu$ is slightly positive, $\theta_2$ and $\theta_3$ are positive, $\theta_1$ is negative, and $\sigma$ centers near 0.15.
-
 ### One-Step Forecast
 Similar to before, we randomly sample from the posterior distribution for the one-step forecast using VI method. Below are sample distribution and prediction summaries.
 
