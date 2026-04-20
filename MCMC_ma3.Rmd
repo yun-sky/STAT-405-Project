@@ -46,6 +46,8 @@ variables = c("mu","theta[1]", "theta[2]", "theta[3]", "sigma")
 ma3_mcmc_clean_summary <- clean_mcmc_summary(variables, ma3_mcmc_fit_summary)
 
 head(ma3_mcmc_fit_summary)
+
+clean_mcmc_summary
 ```
 
 ## MCMC Diagnostics
